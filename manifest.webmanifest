@@ -1,0 +1,14 @@
+{
+  "name": "고양이 해변섬",
+  "short_name": "고양이 해변섬",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#15708f",
+  "theme_color": "#1c90b8",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

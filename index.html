@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>고양이 해변섬</title>
+<meta name="theme-color" content="#1c90b8">
+<!-- 홈 화면 앱 (아이폰 Safari '홈 화면에 추가' / 안드로이드 크롬 '앱 설치') -->
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="고양이 해변섬">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/galmuri@latest/dist/galmuri.css">
+<style>
+:root{--cream:#fbf1dc;--cream2:#f3e3c3;--brown:#7a5236;--brown2:#a8774f;--ink:#5a3d2b;--green:#6fae5b;--green2:#4f8f40;--orange:#ef8a4a;--orange2:#d26a2c}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#15708f}
+body{font:13px/1.35 'Galmuri11','Galmuri9',"Malgun Gothic",sans-serif;color:var(--ink);user-select:none;-webkit-user-select:none;background:radial-gradient(ellipse at 50% 50%,#1a83a6,#125f7a)}
+/* 게임 창 = 배경 그림(정사각형)에 딱 맞는 크기 */
+#game{position:fixed;overflow:hidden;box-shadow:0 0 0 3px rgba(255,255,255,.12),0 10px 40px rgba(0,30,50,.45)}
+canvas#world{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#dock{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
+.ibtn.big{width:76px;height:72px;font-size:11px;position:relative}
+.badge{position:absolute;right:-6px;top:-6px;min-width:22px;height:22px;border-radius:11px;background:var(--orange);color:#fff;border:2px solid #fff;font:11px/18px 'Galmuri11',sans-serif;font-style:normal;padding:0 5px}
+.badge[hidden]{display:none}
+.cgrid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.cgrid2 .card{flex:none}
+.px{image-rendering:pixelated;image-rendering:crisp-edges;vertical-align:middle}
+.panel{background:var(--cream);border:3px solid var(--brown);border-radius:14px;box-shadow:0 4px 0 rgba(90,55,30,.35),inset 0 0 0 2px #fff7e8}
+button{font:inherit;color:inherit;cursor:pointer}
+/* 위쪽: 로고 · 자원 · 도감/설정 */
+#hud{position:absolute;left:0;right:0;top:0;display:flex;align-items:flex-start;gap:10px;padding:10px 12px;padding-top:max(10px,env(safe-area-inset-top));pointer-events:none}
+#hud>*{pointer-events:auto}
+#logo{display:flex;align-items:center;gap:6px;padding:4px 14px 4px 6px;border-radius:999px;background:rgba(251,241,220,.92);border:3px solid var(--brown);box-shadow:0 3px 0 rgba(90,55,30,.35)}
+#logo canvas{width:42px;height:42px}
+#logo b{font-size:18px;line-height:1;color:var(--brown);letter-spacing:1px;text-shadow:2px 2px 0 #fff}
+#res{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;flex:1}
+.chip{display:flex;align-items:center;gap:8px;min-width:86px;padding:5px 14px 5px 8px;border-radius:12px;background:var(--cream);border:3px solid var(--brown);box-shadow:0 3px 0 rgba(90,55,30,.35);font-size:17px;justify-content:space-between}
+.chip.bump{animation:bump .3s}
+@keyframes bump{40%{transform:scale(1.15)}}
+.ibtn{width:62px;height:62px;border-radius:14px;background:var(--cream);border:3px solid var(--brown);box-shadow:0 3px 0 rgba(90,55,30,.35);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;padding:0}
+.ibtn:active,.chip:active,.btn:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(90,55,30,.35)}
+/* 튜토리얼 · 퀘스트 */
+#goals{position:absolute;left:12px;top:78px;width:240px;padding:9px 12px 11px}
+.qh{display:flex;justify-content:space-between;align-items:center}
+.qtag{background:linear-gradient(#f8ad78,#ef8a4a);color:#fff;border:2px solid #b8602a;border-radius:9px;padding:1px 8px;font-size:11px;text-shadow:0 1px 0 rgba(0,0,0,.2)}
+.qr{display:flex;align-items:center;gap:3px;font-size:12px;color:#b77a10}
+.qt{font-size:14px;margin:6px 0 2px}
+.qhint{font-size:11px;color:#9a7a60;margin-bottom:2px}
+.qbar{position:relative;height:16px;margin-top:6px;border-radius:9px;background:#ead9bb;border:2px solid var(--brown2);overflow:hidden}
+.qbar i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#b4e69a,#6fae5b);transition:width .3s}
+.qbar span{position:relative;display:block;text-align:center;font-size:10px;line-height:12px}
+.qclaim{width:100%;margin-top:8px;animation:wiggle 1.2s infinite}
+@keyframes wiggle{0%,100%{transform:none}10%{transform:rotate(-2deg) scale(1.03)}20%{transform:rotate(2deg) scale(1.03)}30%{transform:none}}
+/* 튜토리얼이 가리키는 버튼 반짝반짝 */
+.ibtn.hint{animation:hint 1s infinite;border-color:#e0a020}
+@keyframes hint{50%{transform:translateY(-4px);box-shadow:0 0 0 4px #fff3a0,0 0 18px 6px #ffd84a}}
+/* 제작 · 업그레이드 창 안 */
+.card{display:flex;gap:8px;padding:10px;border-radius:14px;background:#fffaf0;border:3px solid #e3c9a0;box-shadow:0 4px 0 #e3c9a0}
+.card .ic{width:64px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;background:#f6e6c8;border:2px solid #e3c9a0;border-radius:10px;padding:6px 0 4px;font-size:11px}
+.card .bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px}
+.card b{font-weight:400;font-size:13px;white-space:nowrap}
+.need{display:flex;gap:8px;font-size:11px;flex-wrap:wrap}
+.need span{display:flex;align-items:center;gap:2px}
+.need .lack{color:#d0503a}
+.card.locked{opacity:.55;filter:grayscale(.6)}
+/* 볼록한 3D 버튼 */
+.btn{border:3px solid #3f7a33;background:linear-gradient(#8ccb73,#6fae5b);color:#fff;border-radius:12px;padding:7px 10px;font-size:12px;box-shadow:0 4px 0 #3f7a33,inset 0 2px 0 rgba(255,255,255,.45);text-shadow:0 1px 0 rgba(0,0,0,.25);position:relative;overflow:hidden;transition:transform .06s}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 #3f7a33}
+.btn.or{background:linear-gradient(#f8ad78,#ef8a4a);border-color:#b8602a;box-shadow:0 4px 0 #b8602a,inset 0 2px 0 rgba(255,255,255,.45)}
+/* 돈·재료가 부족하면 회색 (누를 수 없음) */
+.btn[disabled],.btn.or[disabled]{background:linear-gradient(#ddd5c6,#cbc1b0);border-color:#a8977a;box-shadow:0 4px 0 #a8977a;color:#f8f4ec;text-shadow:none;cursor:default;transform:none}
+.btn .bar{position:absolute;left:0;top:0;bottom:0;background:rgba(255,255,255,.35)}
+.stock{font-size:11px;color:#8a6a50}
+#upgList{display:flex;flex-direction:column;gap:8px}
+.urow{display:flex;align-items:center;gap:8px;padding:10px 12px;background:#fffaf0;border:3px solid #e3c9a0;border-radius:14px;box-shadow:0 4px 0 #e3c9a0}
+.urow .tx{flex:1;min-width:0;font-size:12px}
+.urow .tx small{display:block;color:#9a7a60;font-size:10px}
+/* 창 */
+#modal{position:fixed;inset:0;background:rgba(30,60,80,.4);display:flex;align-items:center;justify-content:center;z-index:50;padding:14px}
+#modal[hidden]{display:none}
+.dlg{position:relative;width:560px;max-width:100%;max-height:86vh;display:flex;flex-direction:column;padding:38px 16px 16px;margin-top:20px;animation:pop .2s cubic-bezier(.3,1.4,.6,1)}
+#modal .dlg.panel{border:6px solid #7a5236;border-radius:24px;background:#fbf1dc;box-shadow:0 8px 0 #5a3a22,0 16px 34px rgba(0,30,50,.35),inset 0 0 0 4px #fff7e8,inset 0 -10px 0 rgba(168,119,79,.14)}
+@keyframes pop{from{transform:scale(.92);opacity:0}}
+/* 제목: 위에 걸린 나무 간판 */
+.dlg h3{position:absolute;left:50%;top:-24px;transform:translateX(-50%);margin:0;white-space:nowrap;font-size:16px;font-weight:400;display:flex;align-items:center;gap:8px;padding:7px 22px 6px;color:#fff7e8;background:linear-gradient(#cf9662,#a8774f);border:4px solid #7a5236;border-radius:14px;box-shadow:0 4px 0 #5a3a22,inset 0 2px 0 rgba(255,255,255,.35);text-shadow:0 2px 0 #7a5236}
+.dlg h3 img{filter:drop-shadow(0 1px 0 #7a5236)}
+/* 닫기: 연노랑 둥근 상자 */
+.dlg .x{position:absolute;right:-16px;top:-16px;z-index:2;width:38px;height:38px;padding:0;background:linear-gradient(#fff8c4,#ffe98a);border:4px solid #7a5236;border-radius:12px;box-shadow:0 4px 0 #5a3a22,inset 0 2px 0 #fff;font:bold 18px/26px sans-serif;color:#7a5236}
+.dlg .x:active{transform:translateY(3px);box-shadow:0 1px 0 #5a3a22}
+.dlg .in{overflow-y:auto}
+.dex{padding:10px 8px 4px 0;display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:8px}
+.dexc{background:#fffaf0;border:3px solid #e3c9a0;box-shadow:0 4px 0 #e3c9a0;border-radius:14px;padding:6px;text-align:center;font-size:12px}
+.dexc canvas{width:100%;height:auto;display:block}
+.dexc.no canvas{filter:brightness(0) opacity(.25)}
+.dexc small{display:block;color:#9a7a60;font-size:10px;min-height:26px}
+/* 오프닝 타이틀: 위에서 툭 떨어짐 → 양옆 구름 펑 → 사라짐 */
+#game.opening #hud{display:none}
+#opening{position:fixed;inset:0;z-index:45;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:opacity .6s}
+#opening[hidden]{display:none}
+#opening.bye{opacity:0}
+#opening.bye .otitle{transform:scale(.9) translateY(-20px);transition:transform .6s}
+.otitle{position:relative;display:flex;flex-direction:column;align-items:center;margin-top:-8vh;animation:odrop .9s cubic-bezier(.35,1.6,.5,1) both}
+@keyframes odrop{0%{transform:translateY(-110vh)}70%{transform:translateY(0) scaleY(.92) scaleX(1.05)}100%{transform:none}}
+.ocat{width:clamp(80px,14vw,130px);height:auto;filter:drop-shadow(0 4px 0 #7a5236) drop-shadow(0 0 10px #fff)}
+.otitle b{--o:clamp(3px,.55vw,6px);font-weight:400;font-size:clamp(42px,9vw,96px);line-height:1.15;color:#fff7e8;letter-spacing:2px;white-space:nowrap;
+text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5236,0 calc(var(--o)*-1) 0 #7a5236,var(--o) var(--o) 0 #7a5236,calc(var(--o)*-1) var(--o) 0 #7a5236,var(--o) calc(var(--o)*-1) 0 #7a5236,calc(var(--o)*-1) calc(var(--o)*-1) 0 #7a5236,0 calc(var(--o)*2.2) 0 #5a3a22,var(--o) calc(var(--o)*2.2) 0 #5a3a22,calc(var(--o)*-1) calc(var(--o)*2.2) 0 #5a3a22}
+.otitle small{margin-top:6px;font-size:clamp(13px,2vw,20px);color:#fff;text-shadow:0 2px 0 #7a5236,0 0 8px #3a8fb0}
+.otap{position:absolute;bottom:12vh;margin:0;color:#fff;font-size:15px;text-shadow:0 2px 0 #3a7f9c;animation:blink 1.4s 1.6s infinite both}
+@keyframes blink{0%,100%{opacity:0}50%{opacity:1}}
+/* 구름: 하얀 동그라미 뭉치 */
+.cl{position:absolute;top:58%;width:clamp(90px,14vw,170px);height:clamp(30px,4.4vw,52px);border-radius:999px;background:#fff;opacity:0;filter:drop-shadow(0 5px 0 rgba(110,170,205,.45));animation:puff 2.2s ease-out both}
+.cl::before,.cl::after{content:'';position:absolute;background:#fff;border-radius:50%}
+.cl::before{width:48%;aspect-ratio:1;left:14%;bottom:30%}
+.cl::after{width:36%;aspect-ratio:1;right:14%;bottom:38%}
+.cl.l1{right:100%;top:62%;--dx:-40px;animation-delay:.78s}.cl.l2{right:88%;top:8%;--dx:-70px;animation-delay:.92s}
+.cl.r1{left:100%;top:62%;--dx:40px;animation-delay:.78s}.cl.r2{left:88%;top:8%;--dx:70px;animation-delay:.92s}
+@keyframes puff{0%{opacity:0;transform:translateX(0) scale(.3)}18%{opacity:1;transform:translateX(var(--dx)) scale(1)}70%{opacity:.95;transform:translateX(calc(var(--dx)*1.5)) scale(1.08)}100%{opacity:0;transform:translateX(calc(var(--dx)*2.3)) scale(1.25)}}
+/* 처음 이야기: 왼쪽 아래 큰 초상화 + 아래 대사창 (이때는 퀘스트·제작 버튼을 숨김) */
+#game.storymode #dock,#game.storymode #goals{display:none}
+#story{position:fixed;inset:0;z-index:40;pointer-events:none}
+#story[hidden]{display:none}
+/* 초상화는 대사창 바로 위에 서 있게 (대사창 높이 --bh는 JS가 재서 넣음), 위쪽 자원창은 피함 */
+#story .pt{position:absolute;left:max(0px,calc(50vw - 520px));bottom:calc(var(--bh,170px) - 14px);height:min(52vh,520px,calc(100vh - var(--bh,170px) - 110px));width:auto;max-width:80vw;object-fit:contain;filter:drop-shadow(0 0 8px rgba(255,255,255,.95)) drop-shadow(0 0 3px #fff);animation:ptIn .5s cubic-bezier(.3,1.3,.6,1)}
+@keyframes ptIn{from{transform:translateX(-60px);opacity:0}}
+#story .sbox{position:absolute;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));max-width:980px;margin:0 auto;min-height:150px;padding:24px 20px 16px;pointer-events:auto;cursor:pointer;border-width:5px;border-radius:20px;box-shadow:0 6px 0 #5a3a22,inset 0 0 0 3px #fff7e8;animation:boxIn .35s}
+@keyframes boxIn{from{transform:translateY(40px);opacity:0}}
+#story .nm{position:absolute;left:22px;top:-20px;padding:5px 18px;font-size:15px;color:#fff7e8;background:linear-gradient(#cf9662,#a8774f);border:4px solid #7a5236;border-radius:12px;box-shadow:0 3px 0 #5a3a22;text-shadow:0 2px 0 #7a5236}
+#story .txt{margin:0 0 12px;font-size:17px;line-height:1.65;min-height:56px}
+#story .btn{float:right;font-size:14px;padding:9px 18px}
+#story.out{opacity:0;transition:opacity .35s}
+@media (max-width:600px){#story .pt{left:-6px;height:min(40vh,calc(66vw * 1.29),calc(100vh - var(--bh,170px) - 110px))}#story .sbox{min-height:140px;padding:22px 14px 12px}#story .txt{font-size:15px}}
+/* 새로 해금된 도감 카드: 뒷면(???) → 뒤집기 → 반짝 */
+.dexc.new{position:relative;border-color:#f6c343;box-shadow:0 4px 0 #e0a020,0 0 0 3px #fff3a0;perspective:600px}
+.dexc.new .fl{position:relative;transform-style:preserve-3d;transform:rotateY(180deg);transition:transform .9s cubic-bezier(.3,1.35,.6,1)}
+.dexc.new.go .fl{transform:rotateY(0)}
+.ff,.fb{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.fb{position:absolute;inset:0;transform:rotateY(180deg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:linear-gradient(#cf9662,#a8774f);border-radius:10px;color:#fff7e8}
+.fb i{font-style:normal;font-size:46px;line-height:1;text-shadow:0 3px 0 #7a5236}
+.fb small{color:#fff3d8!important}
+.dexc.new.go{animation:glowc 1.3s .9s infinite}
+@keyframes glowc{50%{box-shadow:0 4px 0 #e0a020,0 0 0 4px #fff3a0,0 0 24px 9px #ffd84a;transform:scale(1.04)}}
+.newtag{position:absolute;top:-10px;right:-8px;z-index:2;background:#ef6a4a;color:#fff;font-style:normal;font-size:10px;padding:2px 7px;border-radius:8px;border:2px solid #fff;transform:rotate(8deg);opacity:0;transition:opacity .3s .9s}
+.dexc.new.go .newtag{opacity:1}
+/* '도감이 해금되었습니다!' 창 */
+.unl{position:relative;text-align:center;padding:8px 0 4px;overflow:hidden}
+.unl-rays{position:absolute;left:50%;top:80px;width:360px;height:360px;margin:-180px 0 0 -180px;border-radius:50%;background:repeating-conic-gradient(rgba(255,216,74,.4) 0 10deg,transparent 10deg 20deg);-webkit-mask:radial-gradient(circle,#000 25%,transparent 68%);mask:radial-gradient(circle,#000 25%,transparent 68%);animation:spin 9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.unl-card{position:relative;width:110px;height:140px;margin:6px auto 14px;border-radius:14px;background:linear-gradient(#cf9662,#a8774f);border:4px solid #7a5236;box-shadow:0 5px 0 #5a3a22,inset 0 2px 0 rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;animation:bob 1.2s ease-in-out infinite}
+.unl-card b{font-size:58px;font-weight:400;color:#fff7e8;text-shadow:0 3px 0 #7a5236}
+@keyframes bob{50%{transform:translateY(-6px) rotate(-3deg)}}
+.unl p{position:relative;margin:0 0 14px;font-size:14px}
+.unl p b{font-weight:400;color:var(--orange2)}
+.unl .btn{position:relative}
+.drow{display:flex;align-items:center;gap:10px;padding:10px;background:#fffaf0;border:3px solid #e3c9a0;box-shadow:0 4px 0 #e3c9a0;border-radius:14px;margin-bottom:10px}
+.drow .tx{flex:1}
+.drow .tx small{display:block;color:#9a7a60;font-size:11px}
+.row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-top:2px dashed var(--cream2)}
+.row:first-child{border-top:0}
+.tog{width:48px;height:26px;border-radius:13px;border:2px solid var(--brown2);background:#e4d6bd;position:relative;padding:0}
+.tog::after{content:'';position:absolute;left:2px;top:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .15s}
+.tog.on{background:var(--green)}.tog.on::after{left:24px}
+#toast{position:fixed;left:50%;top:84px;transform:translateX(-50%);display:flex;align-items:center;gap:10px;padding:8px 16px 8px 8px;z-index:60;font-size:13px;max-width:92vw;animation:pop .2s}
+#toast[hidden]{display:none}
+#toast canvas{width:46px;height:40px}
+.talk{display:flex;gap:12px;align-items:flex-end}
+.talk canvas{width:150px;flex:none}
+.dlg.notitle{padding-top:18px}
+.ptw{flex:none;display:flex;flex-direction:column;align-items:center;gap:4px}
+.ptn{font-weight:400;font-size:15px;color:#fff7e8;background:linear-gradient(#cf9662,#a8774f);border:3px solid #7a5236;border-radius:10px;padding:3px 16px;box-shadow:0 3px 0 #5a3a22;text-shadow:0 2px 0 #7a5236}
+.talk .bub{flex:1;background:#fff7e8;border:2px solid var(--cream2);border-radius:12px;padding:12px;font-size:14px;line-height:1.6}
+/* 게임 창이 작을 때(폰 등) */
+#game.small #hud{flex-wrap:wrap;gap:5px;padding:6px}
+#game.small #logo{display:none}
+#game.small #res{order:2;width:100%;flex:none;gap:4px}
+#game.small .chip{min-width:0;flex:1;padding:3px 6px 3px 4px;font-size:12px;gap:3px;border-width:2px}
+#game.small .chip img{width:18px!important;height:18px!important}
+#game.small .ibtn{width:40px;height:40px;font-size:8px;border-width:2px}
+#game.small .ibtn canvas{width:20px!important;height:20px!important}
+#game.small .ibtn.big{width:52px;height:50px}
+#game.small #dock{right:6px;bottom:6px;gap:4px}
+#game.small #goals{top:auto;bottom:62px;left:6px;width:190px;padding:5px 8px 7px}
+#game.small .qt{font-size:12px;margin-top:3px}
+#game.small .qhint{display:none}
+#game.small #hud .sp{flex:1}
+/* 세로 화면(폰): 섬이 화면을 꽉 채우고, 위에 자원 · 아래에 퀘스트 + 큰 버튼을 겹쳐 올림 */
+#game.port #hud{flex-wrap:wrap;gap:6px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top))}
+#game.port #logo{padding:2px 12px 2px 4px}
+#game.port #logo canvas{width:34px;height:34px}
+#game.port #logo b{font-size:14px}
+#game.port .sp{order:1;flex:1}
+#game.port #hud .ibtn{order:2;width:52px;height:50px;font-size:10px}
+#game.port #hud .ibtn canvas{width:24px!important;height:24px!important}
+#game.port #res{order:3;width:100%;flex:none;gap:6px;flex-wrap:nowrap}
+#game.port .chip{min-width:0;flex:1;padding:4px 8px 4px 5px;font-size:15px;gap:4px}
+#game.port .chip img{width:22px!important;height:22px!important}
+#game.port #goals{top:auto;bottom:calc(92px + env(safe-area-inset-bottom));left:10px;right:10px;width:auto}
+#game.port #dock{right:10px;left:10px;bottom:calc(10px + env(safe-area-inset-bottom));gap:10px}
+#game.port #dock .ibtn.big{flex:1;width:auto;height:70px;font-size:13px}
+/* 폰에서 창 안 버튼을 크게 */
+@media (max-width:600px){
+.dlg{padding:34px 12px 14px}
+.dlg .x{right:-12px;top:-14px}
+.btn{padding:10px 12px;font-size:13px}
+.cgrid2{grid-template-columns:1fr}
+.urow,.drow{padding:10px}
+.dex{grid-template-columns:repeat(3,1fr)}
+.tog{width:56px;height:30px}.tog::after{width:22px;height:22px}.tog.on::after{left:28px}
+}
+.sr{display:flex;gap:8px;align-items:center}
+.play{width:34px;height:30px;border-radius:10px;border:3px solid var(--brown2);background:#fff8c4;color:var(--brown);font-size:12px;padding:0;box-shadow:0 3px 0 var(--brown2)}
+.play:active{transform:translateY(2px);box-shadow:0 1px 0 var(--brown2)}
+</style>
+</head>
+<body>
+<div id="game">
+<canvas id="world"></canvas>
+<div id="hud">
+<div id="logo"><canvas id="logoCat" width="84" height="84"></canvas><b>고양이<br>해변섬</b></div>
+<div id="res"></div>
+<span class="sp"></span>
+<button class="ibtn" data-act="dex"><canvas data-icon="catface" width="28" height="28" style="width:28px;height:28px"></canvas>도감</button>
+<button class="ibtn" data-act="settings"><canvas data-icon="gear" width="28" height="28" style="width:28px;height:28px"></canvas>설정</button>
+</div>
+<div id="goals" class="panel"></div>
+<div id="dock">
+<button class="ibtn big" data-act="craft"><canvas data-icon="necklace" width="34" height="34" style="width:34px;height:34px"></canvas>상품 제작<i class="badge" id="craftBadge" hidden></i></button>
+<button class="ibtn big" data-act="upgrade"><canvas data-icon="shop" width="34" height="34" style="width:34px;height:34px"></canvas>업그레이드</button>
+<button class="ibtn big" data-act="decor"><canvas data-icon="pot" width="34" height="34" style="width:34px;height:34px"></canvas>꾸미기</button></div>
+</div>
+<div id="opening" hidden><div class="otitle"><i class="cl l1"></i><i class="cl l2"></i><i class="cl r1"></i><i class="cl r2"></i><canvas class="ocat" width="140" height="118"></canvas><b>고양이 해변섬</b><small>~ Cat Beach Island ~</small></div></div>
+<div id="story" hidden><canvas class="pt"></canvas><div class="sbox panel"><span class="nm">가게 주인</span><p class="txt"></p><button class="btn"></button></div></div>
+<div id="toast" class="panel" hidden></div>
+<div id="modal" hidden></div>
+<script>
+// ===== 기본 =====
+const WORLD_W=1536,WORLD=1024; // 배경 그림 크기(가로×세로) = 세계 좌표
+const $=s=>document.querySelector(s);
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.random()*a.length|0];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Math.floor(n).toLocaleString('ko-KR');
+
+// ===== 그림 (고양이섬 폴더 소스를 정리한 것) =====
+const IMG={};
+function load(name,src){return new Promise(ok=>{const i=new Image();i.onload=()=>{IMG[name]=i;ok()};i.onerror=()=>{console.warn('이미지 없음',src);ok()};i.src=src})}
+// 주인공 시트 (절반 크기 기준 위치): 0·1 정면, 2~5 옆(왼쪽 보며 걷기), 6·7 뒤, 8 웃는 정면, 16~22 감정 표현
+const HERO=[[5,36,103,151],[107,36,100,151],[211,42,88,144],[301,43,90,143],[397,42,89,144],[488,42,87,145],[575,40,93,147],[671,40,93,147],[11,203,100,150],[112,204,101,149],[220,204,93,148],[317,204,89,146],[407,204,87,146],[497,204,81,147],[580,203,88,150],[671,203,86,149],[8,374,107,130],[116,374,117,130],[227,376,102,128],[335,372,97,132],[439,378,99,126],[543,381,95,123],[643,374,107,130]];
+const HERO_ANIM={down:[0,1],left:[2,3,4,5],up:[6,7],happy:[8,16,20,22]};
+// 고양이 12종: [정면, 옆1, 옆2(걷기), 뒤] — cat_frames.png (원본 크기, 옆 고양이 조각을 지우고 다시 배치한 것: tools/CatTool.cs)
+const CAT_FR=[
+[[4,4,129,151],[151,4,89,140],[259,4,91,141],[364,4,104,141]],
+[[4,159,131,152],[151,159,85,137],[259,159,94,136],[364,159,97,144]],
+[[4,315,134,152],[151,315,91,139],[259,315,94,134],[364,315,102,141]],
+[[4,471,137,152],[151,471,93,139],[259,471,100,134],[364,471,97,140]],
+[[4,627,140,158],[151,627,91,142],[259,627,92,141],[364,627,101,147]],
+[[4,789,137,159],[151,789,95,144],[259,789,95,136],[364,789,104,152]],
+[[4,952,138,157],[151,952,90,144],[259,952,93,138],[364,952,106,151]],
+[[4,1113,136,161],[151,1113,95,150],[259,1113,96,137],[364,1113,109,156]],
+[[4,1278,138,162],[151,1278,95,149],[259,1278,99,149],[364,1278,104,153]],
+[[4,1444,137,160],[151,1444,91,150],[259,1444,94,137],[364,1444,101,153]],
+[[4,1608,143,164],[151,1608,96,155],[259,1608,98,138],[364,1608,112,153]],
+[[4,1776,130,164],[151,1776,104,151],[259,1776,101,141],[364,1776,109,155]]];
+// 프레임마다 옅은 바깥 빛(아웃글로우)을 미리 입혀 둠 → 배경 위에서도 고양이가 또렷하게
+const GLOW=12;let CAT_SPR=null;
+function bakeCats(){if(!IMG.cats)return;CAT_SPR=CAT_FR.map(fr=>fr.map(r=>{const c=document.createElement('canvas');c.width=r[2]+GLOW*2;c.height=r[3]+GLOW*2;const g=c.getContext('2d');
+g.shadowColor='rgba(255,248,228,.95)';g.shadowBlur=GLOW;g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],GLOW,GLOW,r[2],r[3]);g.shadowBlur=GLOW/3;g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],GLOW,GLOW,r[2],r[3]);
+g.shadowColor='transparent';g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],GLOW,GLOW,r[2],r[3]);return c}))}
+const CAT_PT=[[14,24,182,153],[201,24,175,152],[382,25,183,152],[571,25,183,152],[14,187,180,146],[199,187,178,146],[381,188,185,145],[572,187,182,146],[14,343,180,150],[199,343,177,151],[381,342,189,152],[576,342,176,155]];
+const HERO_PT=[64,7,489,632];
+// 주민 정보: 이름 · 겉모습 · 성격 · 희귀도(0 흔함 1 가끔 2 드묾)
+const CATS=[
+{n:'귤이',look:'주황색 줄무늬',p:'활발하고 먹보',r:0},
+{n:'크림',look:'크림색',p:'상냥한 이웃',r:0},
+{n:'먹구름',look:'짙은 회색',p:'심술궂지만 단골',r:1},
+{n:'고등어',look:'회색 줄무늬',p:'호기심 대장',r:0},
+{n:'눈송이',look:'하얀 고양이',p:'수줍음이 많음',r:0},
+{n:'삼순이',look:'삼색',p:'수다쟁이',r:0},
+{n:'호두',look:'갈색 줄무늬',p:'듬직한 형님',r:1},
+{n:'딸기',look:'리본 단 핑크',p:'섬의 아이돌',r:2},
+{n:'블루',look:'푸른 회색',p:'눈물이 많음',r:1},
+{n:'양말',look:'검정·흰색',p:'늘 졸린 잠꾸러기',r:1},
+{n:'해바라기',look:'노란 장모·초록 눈',p:'느긋한 낙천가',r:2},
+{n:'라떼',look:'파란 눈 샴',p:'새침한 미식가',r:2}];
+
+// ===== 도트 아이콘 (코드로 그림) =====
+const PAL={o:'#5a3d2b'};
+const ICONS={
+shell:[{a:'#ffd9c9',b:'#f4a98e',c:'#fff3ea'},["....oooo....","..oocacacoo.",".oacacacaco.","oacacacacaco","oacacacacaco","oaacacacacao",".oaacacacao.","..oaaaaaao..","...oobbboo..","....obbbo...",".....ooo...."]],
+seaweed:[{a:'#6fbf6a',b:'#3f8f45',c:'#a5df8f'},["...o....o...","..oao..oao..","..oco..oco..","..oao.oaao..","...oaooao...","..oaaoaao...","..oaoaao.o..",".oaaoaooao..",".oaobaoaao..","..obbbbbo...","...ooooo...."]],
+wood:[{a:'#c48a55',b:'#8e5a32',c:'#e2b07a'},["............","........ooo.","......ooacao","....ooaacbao","..ooaaacaao.",".oaaacaaoo..","oacaaaoo....","obaaoo......",".obo........","..o........."]],
+coin:[{a:'#f6c343',b:'#d9952a',c:'#fff1a8'},["...oooooo...","..oaaaaaao..",".oacaaaaabo.","oacaabbaaabo","oacabaaaaabo","oaaabbbaaabo","oaaaaaabaabo","oaaabbbaaabo",".oaaaaaaabo.","..obbbbbbo..","...oooooo..."]],
+necklace:[{a:'#c48a55',b:'#ffd9c9',c:'#fff3ea'},["..oooooooo..",".oa......ao.","oa........ao","oa........ao",".oa......ao.","..oa....ao..","...obooobo..","..obcbobcbo.","..obbbobbbo.","...ooo.ooo.."]],
+pot:[{a:'#6fbf6a',b:'#e8a272',c:'#3f8f45',d:'#c97a4f'},["...o..o.....","..oao.oao...","..oaooaao...",".oaacaaco...",".ooacaoao...","oooooooooo..","obbbbbbbbo..",".obbbbbbo...",".odddddo....","..ooooo....."]],
+carving:[{a:'#d9a066',b:'#a8693a',c:'#5a3d2b'},["..oo....oo..",".oaao..oaao.",".oaaooooaao.",".oaaaaaaaao.","oaacaaaacaao","oaaaaaaaaaao","oaaaacbaaaao",".oaaaaaaaao.","..oobbbboo..","...oooooo..."]],
+candle:[{a:'#bfe6f0',b:'#6fb7c9',c:'#f6c343',d:'#fff'},[".....oo.....","....occo....","....occo....",".....oo.....","...oooooo...","..oadaaaao..","..oaaaaaao..","..oabbbbao..","..oaaaaaao..","..obbbbbbo..","...oooooo..."]],
+heart:[{a:'#f08aa6',b:'#fff'},["............","..oo....oo..",".oaao..oaao.","oabaaooaaaao","oaaaaaaaaaao","oaaaaaaaaaao",".oaaaaaaaao.","..oaaaaaao..","...oaaaao...","....oaao....",".....oo....."]],
+gear:[{a:'#b9a58c',b:'#8a7560'},["....oooo....","..o.oaao.o..",".oaoaaaaoao.","..oaaaaaao..","ooaaabbaaaoo","oaaabooba ao".replace(' ','a'),"oaaaboobaaao","ooaaabbaaaoo","..oaaaaaao..",".oaoaaaaoao.","..o.oaao.o..","....oooo...."]],
+catface:[{a:'#f4a35c',b:'#fff3ea',c:'#5a3d2b',d:'#f08aa6'},["oo......oo..","oaoo..ooao..","oaaaooaaao..","oaaaaaaaao..","oacaaaacao..","oaaadddaao..","obbbbbbbbo..",".oooooooo..."]],
+clock:[{a:'#fff7e8',b:'#5a3d2b'},["...oooooo...","..oaaaaaao..",".oaaaabaaao.","oaaaaabaaaao","oaaaaabaaaao","oaaaaabbbaao","oaaaaaaaaaao",".oaaaaaaaao.","..oaaaaaao..","...oooooo..."]],
+flower:[{a:'#fbd0dc',b:'#f6c343',c:'#6fbf6a'},["..oo..oo....",".oaaooaao...",".oaaobaao...","..ooobooo...",".oaaooaao...",".oaao.oao...","..oo.ooo....",".....oco....","....occo....","....oco....."]],
+lantern:[{a:'#f6c343',b:'#a8693a',c:'#fff1a8'},["....oooo....","...oo..oo...","..obbbbbbo..","..oaccccao..","..oacccaao..","..oaccaaao..","..oaaaaaao..","..obbbbbbo..","....oooo...."]],
+sign:[{a:'#d9a066',b:'#a8693a',c:'#f4a35c'},["oooooooooooo","oaaaaaaaaaao","oaaoaaaaoaao","oaacoaaocaao","oaacccccccao","oaacocccocao","oaaaccccc aao".replace(' ',''),"oooooooooooo",".....obo....",".....obo....",".....ooo...."]],
+shop:[{a:'#c48a55',b:'#f08aa6',c:'#fff',d:'#8e5a32'},["....oooo....","..ooaaaaoo..",".oaaaaaaaao.","oooooooooooo","obcbcbcbcbco","oooooooooooo",".oaaaaaaaao.",".oaddaadda o".replace(' ','a'),".oaddaadda o".replace(' ','a'),".oaaaaaaaao.",".oooooooooo."]],
+umbrella:[{a:'#f08aa6',b:'#fff',c:'#a8693a'},["....oooo....","..ooababoo..",".oababababo.","oababababab o".replace(' ',''),"oooooooooooo",".....oco....",".....oco....",".....oco....",".....oco....","....oocoo..."]]};
+const icCache={};
+function icon(name){if(icCache[name])return icCache[name];const[pal,rows]=ICONS[name],w=Math.max(...rows.map(r=>r.length)),h=rows.length,c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');rows.forEach((r,y)=>[...r].forEach((ch,x)=>{const col=ch==='.'||ch===' '?null:ch==='o'?PAL.o:pal[ch];if(col){g.fillStyle=col;g.fillRect(x,y,1,1)}}));return icCache[name]=c}
+const ICON_URL={};function iconURL(n){return ICON_URL[n]||(ICON_URL[n]=icon(n).toDataURL())}
+const ii=(n,s=20)=>`<img class="px" src="${iconURL(n)}" style="width:${s}px;height:${s}px" alt="">`;
+function paintIcons(root=document){root.querySelectorAll('canvas[data-icon]').forEach(c=>{const g=c.getContext('2d');g.imageSmoothingEnabled=false;g.clearRect(0,0,c.width,c.height);const s=icon(c.dataset.icon);const k=Math.floor(Math.min(c.width/s.width,c.height/s.height));g.drawImage(s,(c.width-s.width*k)/2,(c.height-s.height*k)/2,s.width*k,s.height*k)})}
+
+// ===== 게임 데이터 =====
+const RES={shell:'조개',seaweed:'해초',wood:'유목'};
+const PRODUCTS=[
+{id:'necklace',n:'조개 목걸이',need:{shell:2,wood:1},price:12,time:6,lv:1},
+{id:'pot',n:'해초 화분',need:{seaweed:2,shell:1},price:16,time:8,lv:1},
+{id:'carving',n:'유목 고양이 인형',need:{wood:2,seaweed:1},price:24,time:11,lv:2},
+{id:'candle',n:'바다 향초',need:{shell:2,seaweed:2,wood:1},price:38,time:15,lv:3}];
+const UPGRADES=[
+{id:'bench',n:'제작 작업대',max:5,cost:[60,150,320,600],eff:l=>`제작 시간 -${(l-1)*15}%`},
+{id:'basket',n:'채집 바구니',max:5,cost:[50,120,260,500],eff:l=>`한 번에 ${basketYield(l)}개 · ${gatherTime(l).toFixed(1)}초`},
+{id:'shoes',n:'산책 신발',max:5,cost:[40,100,220,450],eff:l=>`걷는 속도 ${Math.round(heroSpeed(l))}`},
+{id:'shop',n:'가게 확장',max:9,cost:[150,300,500,800,1200,1700,2300,3000],eff:l=>{const extra=l===2?' · 유목 인형':l===3?' · 바다 향초':'';return l<=1?'기본 가게':`새 손님 ${CATS[l+2].n}${extra} · 진열 ${shelfCapAt(l)}칸`}}];
+const DECOR=[
+{id:'flower',n:'꽃 화분',cost:80,d:'손님이 조금 더 자주 와요',x:790,y:432,icon:'flower'},
+{id:'lantern',n:'조개 랜턴',cost:140,d:'저녁 분위기 + 손님 방문 증가',x:1090,y:450,icon:'lantern'},
+{id:'sign',n:'고양이 간판',cost:220,d:'희귀한 고양이가 찾아올 확률 증가',x:730,y:432,icon:'sign'},
+{id:'umbrella',n:'해변 파라솔',cost:320,d:'손님이 더 오래 기다려 줘요',x:1090,y:515,icon:'umbrella'}];
+const basketYield=l=>1+Math.floor((l-1)/2);
+const gatherTime=l=>Math.max(1.2,3.2-(l-1)*.5);
+const heroSpeed=l=>115+(l-1)*20;
+const benchK=l=>1-(l-1)*.15;
+const shelfCapAt=l=>6+l*2;
+const shelfCap=()=>shelfCapAt(S.lv.shop);
+// 손님 해금: 귤이부터 순서대로. 크림·먹구름·고등어는 플레이 시간(약 30분까지), 그다음은 가게 확장 1단계마다 1마리
+const TIME_UNLOCK=[0,6*60,15*60,28*60];
+function unlockedCount(){let n=TIME_UNLOCK.filter(t=>S.playTime>=t).length;if(n>=4)n=Math.min(12,4+(S.lv.shop-1));return n}
+
+// 섬 위 지점 (배경 그림 좌표)
+// (배경: 반짝이는 고양이들의 열대섬 지도 1536×1024 기준)
+const SPOTS=[
+{t:'wood',x:470,y:380},{t:'shell',x:370,y:525},{t:'shell',x:600,y:650},{t:'seaweed',x:520,y:690},
+{t:'wood',x:690,y:700},{t:'shell',x:935,y:740},{t:'seaweed',x:995,y:700},{t:'wood',x:845,y:610},{t:'seaweed',x:1150,y:470}];
+const HERO_ROUTE=[[935,445,'shop'],[760,450],[600,440],[0],[1],[2],[3],[4],[5],[6],[7],[8],[1040,470]];
+const CRAFT_SPOT=[830,385];
+const HOME=[935,445]; // 가게 앞 (주인공이 인사하는 자리)
+const SHELF_SPOT=[930,325];
+const QUEUE=[[870,465],[945,472],[1015,500]];
+// 손님이 오는 길: 부두 쪽 / 아래 모래사장 쪽
+const ENTRIES=[[[1200,650],[1080,590],[980,560],[960,515]],[[640,775],[830,735],[930,640],[940,540],[905,495]]];
+
+// ===== 저장 =====
+const KEY='cat-island-save-v1';
+const DEF={gold:30,res:{shell:3,seaweed:2,wood:2},stock:{},lv:{bench:1,basket:1,shoes:1,shop:1},decor:{},dex:{},sold:0,goals:null,goalSet:0,crafting:[],sound:true,bgm:true,intro:false,playTime:0,stats:{shell:0,seaweed:0,wood:0,crafted:0,sold:0}};
+let S=(()=>{try{const d=JSON.parse(localStorage.getItem(KEY));if(d)return Object.assign(JSON.parse(JSON.stringify(DEF)),d)}catch(e){}return JSON.parse(JSON.stringify(DEF))})();
+S.crafting=S.crafting||[];
+// 초기화 중에는 저장 금지 (안 그러면 페이지를 떠날 때 옛 기록이 다시 저장돼서 도감·업그레이드가 남아 있었음)
+let resetting=false;
+const save=()=>{if(resetting)return;try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+setInterval(save,5000);addEventListener('pagehide',save);document.addEventListener('visibilitychange',()=>{if(document.hidden)save()});
+
+// ===== 소리 (파일 없이 합성) =====
+// 효과음(sfx) · 배경음악(bgm) · 바다 소리(amb: 파도·갈매기)를 따로 켜고 끔. 브라우저 정책상 첫 터치 후 시작
+let AC=null,BUS={};
+function audio(){
+if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(!C)return null;AC=new C();
+const comp=AC.createDynamicsCompressor();comp.connect(AC.destination);
+for(const k of['sfx','bgm','amb']){BUS[k]=AC.createGain();BUS[k].connect(comp)}
+BUS.bgm.gain.value=S.bgm?BGM_VOL:0;BUS.amb.gain.value=.55;BUS.sfx.gain.value=S.sound?1:0;}
+if(AC.state==='suspended')AC.resume();startBgm();return AC;
+}
+function ac(){const a=audio();return a&&S.sound?a:null}
+function tone(f1,f2,dur,vol=.18,type='sine',delay=0,bus='sfx'){const a=bus==='sfx'?ac():audio();if(!a)return;const t=a.currentTime+delay,o=a.createOscillator(),g=a.createGain();o.type=type;o.frequency.setValueAtTime(f1,t);o.frequency.exponentialRampToValueAtTime(f2,t+dur);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.01);g.gain.exponentialRampToValueAtTime(.0001,t+dur);o.connect(g).connect(BUS[bus]);o.start(t);o.stop(t+dur+.02)}
+function noiseBuf(a,sec){const b=a.createBuffer(1,a.sampleRate*sec,a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;return b}
+const sPop=()=>{tone(760,340,.09);tone(1140,700,.05,.06,'sine',.02)};
+const sCoin=()=>{tone(1320,1320,.08,.12,'square');tone(1760,1760,.18,.1,'square',.07)};
+const sGather=()=>{tone(520,880,.08,.12);tone(880,1180,.1,.08,'sine',.06)};
+// 고양이마다 목소리 높이가 다른 야옹
+const sMeow=(k=0)=>{const p=.8+((k*37)%12)/24;tone(600*p,920*p,.12,.11,'triangle');tone(920*p,500*p,.24,.11,'triangle',.11)};
+const sDone=()=>{[660,880,1100,1320].forEach((f,i)=>tone(f,f,.13,.09,'triangle',i*.07))};
+const sHammer=()=>{const a=ac();if(!a)return;[0,.16].forEach(d=>{tone(180,90,.08,.25,'square',d);const n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain(),t=a.currentTime+d;n.buffer=noiseBuf(a,.06);f.type='bandpass';f.frequency.value=1800;g.gain.setValueAtTime(.2,t);g.gain.exponentialRampToValueAtTime(.001,t+.06);n.connect(f).connect(g).connect(BUS.sfx);n.start(t)})};
+const sFanfare=()=>{[523,659,784,1047].forEach((f,i)=>tone(f,f,.18,.1,'triangle',i*.09));tone(1568,1568,.35,.06,'sine',.36)};
+// 빠밤~! (도감 해금): 짧은 화음 → 길게 울리는 화음 + 반짝
+const sBabam=()=>{[392,494,587].forEach(f=>{tone(f,f,.13,.07,'square');tone(f*2,f*2,.13,.04,'triangle')});[523,659,784,1047].forEach(f=>{tone(f,f*1.005,.75,.07,'triangle',.17);tone(f/2,f/2,.6,.04,'square',.17)});[1568,2093,2637].forEach((f,i)=>tone(f,f,.25,.04,'sine',.45+i*.08))};
+const sFind=()=>{[784,988,1175,1568].forEach((f,i)=>tone(f,f*1.01,.16,.08,'sine',i*.1))};
+// 파도 철썩: 걸러낸 잡음을 밀려왔다 빠지게
+function sWave(force){const a=audio();if(!a||!(force||S.wave!==false))return;const t=a.currentTime,n=a.createBufferSource(),f=a.createBiquadFilter(),g=a.createGain();n.buffer=noiseBuf(a,3.2);f.type='lowpass';f.frequency.setValueAtTime(300,t);f.frequency.linearRampToValueAtTime(1400,t+.9);f.frequency.exponentialRampToValueAtTime(250,t+3);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.32,t+.85);g.gain.exponentialRampToValueAtTime(.12,t+1.4);g.gain.exponentialRampToValueAtTime(.0001,t+3.1);n.connect(f).connect(g).connect(BUS.amb);n.start(t)}
+// 갈매기 끼룩끼룩 (멀리서 들리듯 부드럽게: 톱니파 대신 삼각파 + 살짝 떨림)
+function sGull(force){const a=audio();if(!a||!(force||S.gull!==false))return;const t0=a.currentTime;for(let i=0;i<2+(Math.random()<.5?1:0);i++){const t=t0+i*.38,o=a.createOscillator(),v=a.createOscillator(),vg=a.createGain(),f=a.createBiquadFilter(),g=a.createGain(),base=rnd(820,980);o.type='triangle';o.frequency.setValueAtTime(base,t);o.frequency.linearRampToValueAtTime(base*1.25,t+.09);o.frequency.linearRampToValueAtTime(base*.78,t+.28);v.frequency.value=22;vg.gain.value=base*.025;v.connect(vg).connect(o.frequency);f.type='lowpass';f.frequency.value=2200;g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(.05,t+.04);g.gain.exponentialRampToValueAtTime(.0001,t+.3);o.connect(f).connect(g).connect(BUS.amb);o.start(t);v.start(t);o.stop(t+.33);v.stop(t+.33)}}
+// 배경음악: assets/bgm.mp3 (칼림바·아코디언, 끊김 없이 반복되게 만든 곡) — 버퍼로 무한 반복
+// 브라우저 기본 오디오(loop)로 재생 + 끝나거나 멈추면 다시 재생 (파일로 바로 열어도, 폰에서도 동작)
+const BGM_VOL=.5,bgmEl=new Audio('assets/bgm.mp3');bgmEl.loop=true;bgmEl.preload='auto';bgmEl.volume=BGM_VOL;
+bgmEl.addEventListener('ended',()=>{bgmEl.currentTime=0;startBgm()});
+let bgmPreviewing=false;
+function startBgm(){if(AC&&(S.bgm||bgmPreviewing)&&!document.hidden&&bgmEl.paused)bgmEl.play().catch(()=>{})}
+setInterval(startBgm,2000); // 혹시 멈춰 있으면 다시
+// 설정에서 ▶: 배경음악이 꺼져 있어도 5초만 들려줌
+function bgmPreview(){if(!audio()||S.bgm)return;bgmPreviewing=true;bgmEl.volume=BGM_VOL;startBgm();setTimeout(()=>{bgmPreviewing=false;setBus()},5000)}
+// 바다 소리 예약
+setInterval(()=>{if(AC&&!document.hidden&&Math.random()<.5)sWave()},3500);
+setInterval(()=>{if(AC&&!document.hidden&&Math.random()<.3)sGull()},14000);
+function setBus(){if(!AC)return;bgmEl.volume=BGM_VOL;if(S.bgm)startBgm();else if(!bgmPreviewing)bgmEl.pause();BUS.bgm.gain.value=S.bgm?BGM_VOL:0;BUS.amb.gain.value=.55;BUS.sfx.gain.value=S.sound?1:0}
+addEventListener('pointerdown',()=>{audio()},{once:false,capture:true});
+
+// ===== 세계 상태 =====
+const cv=$('#world'),ctx=cv.getContext('2d');
+let view={s:1,ox:0,oy:0},T=0;
+const hero={x:935,y:445,dir:'down',moving:false,step:0,route:0,state:'walk',timer:0,emote:0,emoteT:0};
+let customers=[],floats=[],sparks=[],spawnT=4;
+const spotState=SPOTS.map(()=>({ready:true,t:0}));
+
+// 화면을 빈틈없이 꽉 채움: 배경을 화면보다 크게(cover) 그리고, 잘린 부분은 손가락/마우스로 끌어서 봄. UI는 위에 겹쳐 올림
+// 확대: 1 = 화면을 꽉 채우는 크기(이보다 작아지면 빈 공간이 보여서 막음), 처음엔 가게 쪽을 확대해서 시작
+// 시작 배율은 시작 화면에서 정함 (처음 이야기: 주인공 확대 / 그 외: 섬 전체)
+const cam={x:900,y:470},ZMIN=1,ZMAX=3;let zoom=1;
+// 섬 전체가 잘 보이는 배율·위치 (섬: 대략 330~1250 × 100~800)
+const ISLAND={x:790,y:450,w:960,h:760};
+const islandZoom=()=>Math.max(ZMIN,Math.min(ZMAX,Math.min(view.W/ISLAND.w,view.H/ISLAND.h)/view.base));
+// 카메라를 부드럽게 이동·확대 (시작하기 → 섬 전체로 쭉 빠짐)
+let camTw=null;
+function flyTo(x,y,z,dur,done){camTw={x0:cam.x,y0:cam.y,z0:zoom,x,y,z,t:0,dur,done}}
+function stepCam(dt){if(!camTw)return;const w=camTw;w.t=Math.min(1,w.t+dt/w.dur);const e=w.t<.5?2*w.t*w.t:1-Math.pow(-2*w.t+2,2)/2;
+zoom=w.z0+(w.z-w.z0)*e;view.s=view.base*zoom;cam.x=w.x0+(w.x-w.x0)*e;cam.y=w.y0+(w.y-w.y0)*e;clampCam();if(w.t>=1){camTw=null;if(w.done)w.done()}}
+function clampCam(){const v=view,hw=v.W/2/v.s,hh=v.H/2/v.s;cam.x=Math.max(hw,Math.min(WORLD_W-hw,cam.x));cam.y=Math.max(hh,Math.min(WORLD-hh,cam.y));v.ox=v.W/2-cam.x*v.s;v.oy=v.H/2-cam.y*v.s}
+function resize(){
+const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight,gm=$('#game');
+gm.style.cssText=`left:0;top:0;width:${W}px;height:${H}px`;
+const port=H>W*1.1;gm.className=port?'port':Math.min(W,H)<660?'small':'';gm.classList.toggle('storymode',!S.intro);gm.classList.toggle('opening',openingOn);
+$('#toast').style.top=(port?130:Math.min(W,H)<660?96:84)+'px';
+cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
+const base=Math.max(W/WORLD_W,H/WORLD);view={base,s:base*zoom,ox:0,oy:0,W,H};clampCam();
+}
+addEventListener('resize',resize);
+// 끌어서 섬 둘러보기
+// 화면의 (px,py) 지점을 고정한 채로 확대/축소
+// 직접 움직이면 자동 이동은 멈춤 (이어서 할 일은 바로 실행)
+const stopTw=()=>{if(camTw){const d=camTw.done;camTw=null;if(d)d()}};cv.addEventListener('pointerdown',stopTw);cv.addEventListener('wheel',stopTw);
+function setZoom(z,px,py){const wx=(px-view.ox)/view.s,wy=(py-view.oy)/view.s;zoom=Math.max(ZMIN,Math.min(ZMAX,z));view.s=view.base*zoom;cam.x=wx+(view.W/2-px)/view.s;cam.y=wy+(view.H/2-py)/view.s;clampCam()}
+// 한 손가락/마우스 = 끌어서 이동, 두 손가락 = 벌리고 오므려서 확대/축소
+const ptrs=new Map();let pinch=null;
+const mid=()=>{const a=[...ptrs.values()];return{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}};
+cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cv.setPointerCapture(e.pointerId)}catch(_){}if(ptrs.size===2)pinch=mid()});
+cv.addEventListener('pointermove',e=>{const p=ptrs.get(e.pointerId);if(!p)return;
+if(ptrs.size>=2){p.x=e.clientX;p.y=e.clientY;const m=mid();if(pinch&&pinch.d>0){cam.x-=(m.x-pinch.x)/view.s;cam.y-=(m.y-pinch.y)/view.s;clampCam();setZoom(zoom*m.d/pinch.d,m.x,m.y)}pinch=m;return}
+cam.x-=(e.clientX-p.x)/view.s;cam.y-=(e.clientY-p.y)/view.s;p.x=e.clientX;p.y=e.clientY;clampCam()});
+const endPtr=e=>{ptrs.delete(e.pointerId);pinch=ptrs.size===2?mid():null};cv.addEventListener('pointerup',endPtr);cv.addEventListener('pointercancel',endPtr);
+// 마우스 휠(스크롤) = 확대/축소
+cv.addEventListener('wheel',e=>{e.preventDefault();setZoom(zoom*Math.exp(-e.deltaY*.0015),e.clientX,e.clientY)},{passive:false});
+
+// ===== 그리기 =====
+function drawSprite(img,r,x,y,h,flip){
+if(!img)return;const k=h/r[3],w=r[2]*k;ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);ctx.drawImage(img,r[0],r[1],r[2],r[3],-w/2,-h,w,h);ctx.restore();
+}
+function shadow(x,y,w){ctx.fillStyle='rgba(40,60,40,.22)';ctx.beginPath();ctx.ellipse(x,y,w,w*.35,0,0,7);ctx.fill()}
+function bubble(x,y,content,w=34,h=30){
+ctx.save();ctx.fillStyle='#fffaf0';ctx.strokeStyle='#7a5236';ctx.lineWidth=2.5;const r=8;
+ctx.beginPath();ctx.moveTo(x-w/2+r,y-h);ctx.arcTo(x+w/2,y-h,x+w/2,y,r);ctx.arcTo(x+w/2,y,x-w/2,y,r);ctx.lineTo(x+4,y);ctx.lineTo(x,y+7);ctx.lineTo(x-4,y);ctx.arcTo(x-w/2,y,x-w/2,y-h,r);ctx.arcTo(x-w/2,y-h,x+w/2,y-h,r);ctx.closePath();ctx.fill();ctx.stroke();
+content(x,y-h/2);ctx.restore();
+}
+function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
+function drawIcon(n,x,y,size){const s=icon(n);ctx.imageSmoothingEnabled=false;ctx.drawImage(s,x-size/2,y-size/2,size,size*s.height/s.width);ctx.imageSmoothingEnabled=true}
+function draw(){
+ctx.fillStyle='#1c90b8';ctx.fillRect(0,0,view.W||0,view.H||0);
+ctx.save();ctx.translate(view.ox,view.oy);ctx.scale(view.s,view.s);
+ctx.imageSmoothingQuality='high';
+// 배경은 한 장으로 고정 (프레임 전환은 어지러움)
+if(IMG.bg1)ctx.drawImage(IMG.bg1,0,0,WORLD_W,WORLD);
+// 장식
+for(const d of DECOR)if(S.decor[d.id]){shadow(d.x,d.y,14);drawIcon(d.icon,d.x,d.y-18,40)}
+// 채집 지점
+SPOTS.forEach((s,i)=>{const st=spotState[i];if(!st.ready){ctx.globalAlpha=.25}else{const b=Math.sin(T*3+i)*2;shadow(s.x,s.y+4,12);drawIcon(s.t,s.x,s.y-14+b,40);if(Math.sin(T*2+i*1.7)>.85){ctx.fillStyle='#fff';ctx.fillRect(s.x+10,s.y-30,3,3)}}ctx.globalAlpha=1;if(!st.ready){}});
+// 제작대 말풍선
+if(S.crafting.length){const c=S.crafting[0],p=PRODUCTS.find(x=>x.id===c.id),left=Math.max(0,c.end-now());bubble(CRAFT_SPOT[0],CRAFT_SPOT[1]-24,(x,y)=>{drawIcon(p.id,x-12,y,22);ctx.fillStyle='#5a3d2b';ctx.font="11px 'Galmuri11',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(Math.ceil(left/1000)+'s',x+1,y+1)},58,28)}
+// 진열대 재고 표시
+const stockN=Object.values(S.stock).reduce((a,b)=>a+b,0);
+// 진열대 말풍선: 완성된 상품 아이콘 × 남은 개수 (화면이 작아도 읽히게 크기 보정)
+if(stockN){const items=PRODUCTS.filter(p=>S.stock[p.id]>0),k=Math.max(1.1,.95/view.s),cw=50*k,w=items.length*cw+10*k,h=32*k;
+bubble(SHELF_SPOT[0],SHELF_SPOT[1],(x,y)=>{items.forEach((p,i)=>{const cx=x-w/2+5*k+i*cw;drawIcon(p.id,cx+13*k,y,24*k);ctx.font=`${13*k}px 'Galmuri11',sans-serif`;ctx.textAlign='left';ctx.textBaseline='middle';ctx.lineWidth=3*k;ctx.strokeStyle='#fffaf0';ctx.strokeText('×'+S.stock[p.id],cx+27*k,y+2*k);ctx.fillStyle='#5a3d2b';ctx.fillText('×'+S.stock[p.id],cx+27*k,y+2*k)})},w,h)}
+// 캐릭터 (아래에 있는 것을 나중에)
+const ents=[{y:hero.y,d:drawHero},...customers.map(c=>({y:c.y,d:()=>drawCat(c)}))].sort((a,b)=>a.y-b.y);
+for(const e of ents)e.d();
+// 떠오르는 글자
+for(const f of floats){ctx.globalAlpha=Math.min(1,f.l*2);if(f.icon)drawIcon(f.icon,f.x-14,f.y,18);ctx.font="bold 15px 'Galmuri11',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.strokeText(f.t,f.x-2,f.y);ctx.fillStyle=f.c||'#5a3d2b';ctx.fillText(f.t,f.x-2,f.y)}
+ctx.globalAlpha=1;
+for(const p of sparks){ctx.globalAlpha=p.l;ctx.fillStyle=p.c;ctx.fillRect(p.x,p.y,4,4)}
+ctx.globalAlpha=1;
+ctx.restore();
+}
+function drawHero(){
+if(hero.state==='hidden')return; // 오프닝 타이틀 동안은 아무도 없음
+const img=IMG.hero;shadow(hero.x,hero.y,16);
+let idx,flip=false;
+if(hero.emoteT>0)idx=hero.emote;
+else if(hero.state==='idle')idx=[0,1,0,1,8,16,8,20][Math.floor(T*2.2)%8]; // 숨쉬기 ↔ 웃으며 인사
+else if(hero.state==='gather')idx=HERO_ANIM.happy[Math.floor(T*3)%2?0:2];
+else if(!hero.moving)idx=HERO_ANIM.down[Math.floor(T*1.5)%2];
+else{const d=hero.dir,a=d==='left'||d==='right'?HERO_ANIM.left:HERO_ANIM[d];idx=a[Math.floor(hero.step*7)%a.length];flip=d==='right'}
+const r=HERO[idx];const bob=hero.moving?Math.abs(Math.sin(hero.step*14))*3:0;
+// 주인공은 고양이보다 크게 + 흰 바깥 빛으로 잘 보이게
+const hh=r[3]*.64;ctx.save();ctx.shadowColor='rgba(255,255,255,.95)';ctx.shadowBlur=9;drawSprite(img,r,hero.x,hero.y-bob,hh,flip);ctx.shadowBlur=3;drawSprite(img,r,hero.x,hero.y-bob,hh,flip);ctx.restore();
+if(hero.state==='gather'){const p=1-hero.timer/gatherTime(S.lv.basket),by=hero.y-hh-14;ctx.fillStyle='rgba(90,60,40,.45)';ctx.fillRect(hero.x-24,by,48,8);ctx.fillStyle='#8bd06a';ctx.fillRect(hero.x-24,by,48*p,8)}
+}
+function drawCat(c){
+const fr=CAT_FR[c.k];shadow(c.x,c.y,13);
+let fi=0,flip=false;
+if(c.moving){const side=c.vx!==0&&Math.abs(c.vx)>=Math.abs(c.vy);if(side){fi=Math.floor(c.step*6)%2?1:2;flip=c.vx>0}else fi=c.vy<0?3:0}
+const r=fr[fi],bob=c.moving?Math.abs(Math.sin(c.step*12))*2.5:Math.sin(T*2+c.k)*.8;
+// 고양이마다 정면 키 66 기준으로 같은 배율 (옆·뒷모습은 시트 안에서 작게 그려져 있어서 1.13배)
+const k=66/fr[0][3]*(fi?1.13:1);
+if(CAT_SPR){const s=CAT_SPR[c.k][fi],w=s.width*k,h=s.height*k;ctx.save();ctx.translate(c.x,c.y-bob+GLOW*k);if(flip)ctx.scale(-1,1);ctx.drawImage(s,-w/2,-h,w,h);ctx.restore()}
+// 기다려 주는 시간 게이지 (초록 → 노랑 → 빨강)
+if(c.state==='wait'&&c.waitMax){const p=Math.max(0,c.wait/c.waitMax),k=Math.max(1,.85/view.s),w=46*k,h=7*k,b=2*k,x=c.x-w/2,y=c.y+7;
+ctx.fillStyle='#7a5236';rrect(x-b,y-b,w+b*2,h+b*2,h/2+b);ctx.fill();ctx.fillStyle='#f3e3c3';rrect(x,y,w,h,h/2);ctx.fill();
+if(p>0&&!(p<.25&&Math.sin(T*12)<0)){ctx.fillStyle=p>.5?'#7fcf5f':p>.25?'#f6c343':'#ef6a4a';rrect(x,y,Math.max(h,w*p),h,h/2);ctx.fill()}}
+if(c.say)talkBubble(c.x,c.y-80,c.say.t);
+else if(c.bub){const b=c.bub;bubble(c.x,c.y-80,(x,y)=>{if(b==='heart')drawIcon('heart',x,y,20);else if(b==='...'){ctx.fillStyle='#5a3d2b';ctx.font="bold 14px sans-serif";ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('...',x,y)}else drawIcon(b,x,y,20)})}
+}
+
+// ===== 시간 =====
+const now=()=>Date.now();
+let last=performance.now(),acc=0;
+function loop(t){
+let dt=Math.min(.1,(t-last)/1000);last=t;
+if(!document.hidden){T+=dt;update(dt);stepCam(dt)}
+draw();requestAnimationFrame(loop);
+}
+
+// ===== 움직임 =====
+function moveTo(e,tx,ty,speed,dt){
+const dx=tx-e.x,dy=ty-e.y,d=Math.hypot(dx,dy);
+if(d<2){e.x=tx;e.y=ty;e.moving=false;e.vx=e.vy=0;return true}
+const s=Math.min(d,speed*dt);e.x+=dx/d*s;e.y+=dy/d*s;e.moving=true;e.vx=dx;e.vy=dy;e.step+=dt;
+e.dir=Math.abs(dx)>Math.abs(dy)*.8?(dx<0?'left':'right'):(dy<0?'up':'down');return false;
+}
+function update(dt){
+// 플레이 시간 (켜 둔 동안만) → 새 손님 해금 알림
+S.playTime=(S.playTime||0)+dt;
+const un=unlockedCount();if(un>(S.unlockSeen||1)){S.unlockSeen=un;toast('누군가 섬에 찾아온 것 같아요… 가게에 오면 도감에 등록돼요','catface');sGull()}
+// 주인공: 정해진 길을 돌며 준비된 재료를 모음
+if(hero.emoteT>0)hero.emoteT-=dt;
+// [시작하기] 전: 가게 앞에 서서 인사 애니메이션만 (채집은 시작 후)
+// 오프닝: 'hidden'(안 보임) → 'enter'(화면 밖에서 걸어 들어옴) → 'idle'(가게 앞에서 인사)
+if(!S.intro){
+if(hero.state==='enter'){if(moveTo(hero,HOME[0],HOME[1],heroSpeed(1)*.85,dt)){hero.state='idle';hero.dir='down';hero.emote=HERO_ANIM.happy[1];hero.emoteT=1.1;if(hero.onArrive){const f=hero.onArrive;hero.onArrive=null;f()}}}
+else if(hero.state!=='hidden'){hero.state='idle';hero.moving=false;hero.dir='down'}}
+else if(hero.state==='idle'||hero.state==='hidden'||hero.state==='enter')hero.state='walk';
+if(hero.state==='idle'||hero.state==='hidden'||hero.state==='enter'){}
+else if(hero.state==='gather'){hero.timer-=dt;if(hero.timer<=0){const sp=SPOTS[hero.gi],n=basketYield(S.lv.basket);gain(sp.t,n,sp.x,sp.y-40);spotState[hero.gi]={ready:false,t:rnd(14,22)};hero.state='walk';hero.route=(hero.route+1)%HERO_ROUTE.length;sGather()}}
+else if(hero.state==='rest'){hero.timer-=dt;if(hero.timer<=0){hero.state='walk';hero.route=(hero.route+1)%HERO_ROUTE.length}}
+else{
+const step=HERO_ROUTE[hero.route];let tx,ty,spot=null;
+if(step.length===1){spot=step[0];tx=SPOTS[spot].x;ty=SPOTS[spot].y+6}else{tx=step[0];ty=step[1]}
+if(spot!==null&&!spotState[spot].ready){hero.route=(hero.route+1)%HERO_ROUTE.length}
+else if(moveTo(hero,tx,ty,heroSpeed(S.lv.shoes),dt)){
+if(spot!==null){hero.state='gather';hero.gi=spot;hero.timer=gatherTime(S.lv.basket);hero.dir='down'}
+else if(step[2]==='shop'){hero.state='rest';hero.timer=1.2;hero.emote=HERO_ANIM.happy[1+Math.floor(Math.random()*3)];hero.emoteT=1.2}
+else hero.route=(hero.route+1)%HERO_ROUTE.length;
+}}
+spotState.forEach(s=>{if(!s.ready){s.t-=dt;if(s.t<=0)s.ready=true}});
+// 제작: 끝난 것은 진열대로
+if(S.crafting.length&&S.crafting[0].end<=now()){const c=S.crafting.shift();const cap=shelfCap(),n=stockTotal();if(n<cap){S.stock[c.id]=(S.stock[c.id]||0)+1}S.stats.crafted++;S.stats.made[c.id]=(S.stats.made[c.id]||0)+1;floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'완성!',l:1.4,icon:c.id,c:'#4f8f40'});sDone();if(S.crafting.length){const p=PRODUCTS.find(x=>x.id===S.crafting[0].id);S.crafting[0].end=now()+craftMs(p)}uiDirty=true}
+// 손님
+if(S.intro)spawnT-=dt; // 처음 이야기를 끝내고 [시작하기]를 누르기 전엔 손님이 오지 않음
+if(spawnT<=0&&customers.length<3){spawnCat();spawnT=spawnGap()}
+for(const c of customers)updateCat(c,dt);
+customers=customers.filter(c=>!c.gone);
+floats.forEach(f=>{f.y-=22*dt;f.l-=dt*.8});floats=floats.filter(f=>f.l>0);
+sparks.forEach(p=>{p.x+=p.vx*dt;p.y+=p.vy*dt;p.vy+=120*dt;p.l-=dt*1.5});sparks=sparks.filter(p=>p.l>0);
+}
+const stockTotal=()=>Object.values(S.stock).reduce((a,b)=>a+b,0);
+function spawnGap(){let g=18-(S.lv.shop-1)*2;if(S.decor.flower)g-=2;if(S.decor.lantern)g-=2.5;return Math.max(7,g*rnd(.8,1.2))}
+function spawnCat(){
+// 해금된 고양이 중에서 (같은 고양이가 또 와도 됨). 아직 못 만난 새 고양이는 자주 오게 (고양이 간판이 있으면 더)
+const n=unlockedCount(),fresh=[];for(let i=0;i<n;i++)if(!S.dex[i]&&!customers.some(c=>c.k===i))fresh.push(i);
+const k=fresh.length&&Math.random()<(S.decor.sign?.75:.55)?fresh[0]:Math.floor(Math.random()*n);
+const path=pick(ENTRIES),slot=[0,1,2].find(i=>!customers.some(c=>c.slot===i));
+const wants=pick(PRODUCTS.filter(p=>p.lv<=S.lv.shop)).id;
+customers.push({k,x:path[0][0],y:path[0][1],path:path.slice(1).concat([QUEUE[slot]]),slot,state:'in',step:0,vx:0,vy:0,moving:true,wants,wait:0,bub:null,back:path.slice().reverse()});
+}
+function updateCat(c,dt){
+const sp=70;
+if(c.say){c.say.l-=dt;if(c.say.l<=0)c.say=null}
+if(c.state==='in'||c.state==='out'){
+const tgt=c.path[0];if(moveTo(c,tgt[0],tgt[1],sp,dt)){c.path.shift();if(!c.path.length){if(c.state==='in'){c.state='wait';c.wait=c.waitMax=S.decor.umbrella?40:30;c.bub=c.wants;c.think=rnd(2.2,3);say(c,'hi');sMeow(c.k);discover(c.k)}else c.gone=true}}
+return;
+}
+if(c.state==='wait'){
+c.think-=dt;c.wait-=dt;if(c.think>0)return;
+// 원하는 상품이 있으면 사고(+20%), 없으면 다른 상품이라도
+let id=S.stock[c.wants]>0?c.wants:Object.keys(S.stock).find(k=>S.stock[k]>0);
+if(id){const p=PRODUCTS.find(x=>x.id===id);S.stock[id]--;if(!S.stock[id])delete S.stock[id];const price=Math.round(p.price*(id===c.wants?1.2:1));S.gold+=price;S.stats.sold++;S.stats.earned+=price;floats.push({x:c.x,y:c.y-70,t:'+'+price,l:1.6,icon:'coin',c:'#c98a14'});burst(c.x,c.y-50);c.bub='heart';say(c,'buy');sCoin();setTimeout(()=>sMeow(c.k),250);goalTick();uiDirty=true;bumpChip('gold');leave(c,2.2)}
+else if(c.wait<=0){c.bub='...';say(c,'none');leave(c,2)}
+}
+if(c.state==='leaving'){c.delay-=dt;if(c.delay<=0){c.state='out';c.path=c.back.slice();c.bub=c.bub==='heart'?'heart':null}}
+}
+function leave(c,d){c.state='leaving';c.delay=d}
+// 성격에 맞는 대사: 왔을 때 / 샀을 때 / 상품이 없을 때
+const LINES=[
+{hi:['안녕안녕! 오늘 뭐 있어?','냠냠 냄새 난다!'],buy:['최고야! 또 올게!','이거 내 거다!'],none:['힝… 다 팔렸어?']},
+{hi:['좋은 아침이에요~','오늘도 반가워요'],buy:['고마워요, 소중히 할게요','정말 예뻐요!'],none:['괜찮아요, 다음에 올게요']},
+{hi:['흥, 볼 만한 거 있어?','…그냥 지나가다 들렀어'],buy:['뭐, 나쁘지 않네.','…또 올지도.'],none:['뭐야, 텅 비었잖아!']},
+{hi:['이건 뭐야? 저건 뭐야?','새로운 거 있어?'],buy:['신기하다! 가져갈래!','우와 반짝반짝!'],none:['어? 아무것도 없네?']},
+{hi:['저, 저기… 안녕하세요…','(빼꼼)'],buy:['고, 고마워요…!','소중히… 할게요'],none:['(조용히 돌아간다)']},
+{hi:['있잖아 있잖아! 오늘 바다가~','얘기 들었어? 글쎄~'],buy:['이거 다들 부러워하겠다!','수다 떨러 또 올게~'],none:['어머, 품절이야?']},
+{hi:['오늘도 수고가 많군.','좋은 가게야.'],buy:['좋은 물건이군. 고맙다.','든든하네.'],none:['다음에 다시 오지.']},
+{hi:['딸기 등장~☆','다들 나 봤어?'],buy:['반짝반짝 예쁘다~♡','팬들한테 자랑해야지!'],none:['딸기 슬퍼…']},
+{hi:['흑… 오늘도 왔어…','울지 않을 거야…'],buy:['흐엉 너무 좋아…','감동이야…'],none:['흐아앙 없어…']},
+{hi:['하암… 졸려…','Zzz… 아, 왔다…'],buy:['이거 베고 자야지…','좋네… 하암'],none:['…다음에… Zzz']},
+{hi:['천천히 구경할게~','바람 좋다~'],buy:['느긋하게 잘 쓸게~','햇살 같은 물건이야~'],none:['뭐 어때~ 또 오지~']},
+{hi:['…이 정도는 돼야지.','흠, 고급스러운 거 있어?'],buy:['…합격이야.','나쁘지 않은 안목이네.'],none:['실망이야.']}];
+function say(c,kind){c.say={t:pick(LINES[c.k][kind]),l:2.6}}
+// 대사 말풍선 (화면 크기와 상관없이 글씨가 읽히게)
+function talkBubble(x,y,text){
+const fs=Math.max(13,12/view.s),pad=fs*.6;ctx.font=`${fs}px 'Galmuri11',sans-serif`;const tw=ctx.measureText(text).width,w=tw+pad*2,h=fs+pad*1.4;
+ctx.save();ctx.fillStyle='#fffaf0';ctx.strokeStyle='#7a5236';ctx.lineWidth=Math.max(2.5,2/view.s);
+const r=h/2;ctx.beginPath();ctx.moveTo(x-w/2+r,y-h);ctx.arcTo(x+w/2,y-h,x+w/2,y,r);ctx.arcTo(x+w/2,y,x-w/2,y,r);ctx.lineTo(x+5,y);ctx.lineTo(x-2,y+fs*.5);ctx.lineTo(x-5,y);ctx.arcTo(x-w/2,y,x-w/2,y-h,r);ctx.arcTo(x-w/2,y-h,x+w/2,y-h,r);ctx.closePath();ctx.fill();ctx.stroke();
+ctx.fillStyle='#5a3d2b';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y-h/2+1);ctx.restore();
+}
+function burst(x,y){for(let i=0;i<10;i++)sparks.push({x,y,vx:rnd(-60,60),vy:rnd(-110,-40),l:1,c:pick(['#f6c343','#fff1a8','#f08aa6','#fff'])})}
+function gain(t,n,x,y){S.res[t]=(S.res[t]||0)+n;S.stats[t]=(S.stats[t]||0)+n;floats.push({x,y,t:'+'+n,l:1.3,icon:t});goalTick();bumpChip(t);uiDirty=true}
+// 처음 온 고양이: 도감 등록 → (다른 창이 닫혀 있을 때) 초상화와 함께 인사 → '도감 해금!' 창 → 도감에서 카드 뒤집기
+function discover(k){if(S.dex[k])return;S.dex[k]=1;S.dexNew=S.dexNew||{};S.dexNew[k]=1;introQ.push(k);sFind();save();uiDirty=true}
+const introQ=[];
+setInterval(()=>{if(introQ.length&&$('#modal').hidden&&S.intro)openCatIntro(introQ.shift())},300);
+// 처음 왔을 때 대사 (성격대로)
+const FIRST=[
+['여기가 그 소문의 가게야~?? 맛있는 냄새가 솔솔 난다!','나는 귤이! 섬에서 제일 빠르고 제일 잘 먹어!','앞으로 매일매일 놀러 올게~!'],
+['어머, 여기가 그 소문의 가게인가요~?','저는 크림이에요. 바닷바람처럼 포근한 가게네요.','앞으로 자주 들를게요. 잘 부탁해요♡'],
+['흥, 여기가 그 소문의 가게라고?','…먹구름이다. 딱히 기대하고 온 건 아니야.','뭐… 물건이 괜찮으면 또 와 줄 수도 있고.'],
+['우와아! 여기가 그 소문의 가게야?? 이건 뭐야? 저건?','나는 고등어! 궁금한 건 절대 못 참아!','신기한 물건 들어오면 제일 먼저 알려 줘!'],
+['저, 저기… 여기가 그 소문의 가게… 맞나요…?','누, 눈송이예요… (꾸벅)','조, 조용히 구경만 하다 갈게요…!'],
+['어머어머! 여기가 그 소문의 가게구나~!','나 삼순이! 섬 소식은 전부 나한테 물어봐~','벌써 친구들한테 자랑하고 싶어졌어!'],
+['여기가 소문의 가게로군.','호두라고 한다. 섬 일이라면 언제든 도와주지.','좋은 가게야. 자주 오겠다.'],
+['딸기 등장~☆ 여기가 그 소문의 가게야~?','섬의 아이돌 딸기야! 사인해 줄까?','예쁜 거 많으면 팬들한테 홍보해 줄게~♡'],
+['흑… 여기가 그 소문의 가게야…? 너무 예뻐서 눈물 나…','나는 블루야… 감동을 잘 받아…','따뜻한 곳이라 다행이야… 또 올게…'],
+['하암… 여기가… 소문의 가게…?','양말이야… 졸다가 걷다 보니 여기까지 왔어…','푹신한 거 있으면… 꼭 알려 줘… Zzz'],
+['여기가 그 소문의 가게구나~ 바람 좋다~','해바라기야~ 서두르지 말고 천천히 지내자~','햇살 좋은 날마다 들를게~'],
+['…여기가 그 소문의 가게? 흠.','라떼야. 아무 물건이나 사진 않아.','…그래도 분위기는 합격이야. 또 올게.']];
+function openCatIntro(k){
+const lines=FIRST[k],c=customers.find(x=>x.k===k);let i=0;
+// 제목 간판 없이, 초상화 아래에 이름
+modal('',`<div class="talk"><div class="ptw"><span class="pt"></span><b class="ptn">${esc(CATS[k].n)}</b></div><div class="bub"></div></div><div style="text-align:right;margin-top:10px"><button class="btn" data-next>다음</button></div>`);
+$('#modal .pt').replaceWith(portraitCanvas(k,150));
+const show=()=>{typeText($('#modal .bub'),lines[i]);$('#modal [data-next]').textContent=i<lines.length-1?'다음':'반가워!';if(c)c.say={t:lines[i],l:3};sMeow(k)};show();
+$('#modal [data-next]').onclick=()=>{sPop();i++;if(i>=lines.length)openUnlock(k);else show()};
+}
+// 한 글자씩 나오는 대사
+function typeText(el,t){clearInterval(el._t);let n=0;el.textContent='';el._t=setInterval(()=>{n++;el.textContent=t.slice(0,n);if(n>=t.length)clearInterval(el._t)},35)}
+// '도감이 해금되었습니다!' 창
+function openUnlock(k){
+modal('도감이 해금되었습니다!',`<div class="unl"><div class="unl-rays"></div><div class="unl-card"><b>?</b></div><p><b>${esc(CATS[k].n)}</b>의 프로필이 도감에 등록됐어요!</p><button class="btn or" data-dexgo>도감에서 확인하기</button></div>`,'heart');
+sFanfare();$('#modal [data-dexgo]').onclick=()=>{sPop();openDex(k)};
+}
+
+// ===== 제작 =====
+const craftMs=p=>p.time*benchK(S.lv.bench)*1000;
+const maxQueue=()=>S.lv.bench>=3?3:2;
+// 재료 충분 + 대기열 여유 + 진열대(만드는 중인 것 포함) 자리 있음
+function canCraft(p){return p.lv<=S.lv.shop&&Object.entries(p.need).every(([k,v])=>(S.res[k]||0)>=v)&&S.crafting.length<maxQueue()&&stockTotal()+S.crafting.length<shelfCap()}
+function craft(id){
+const p=PRODUCTS.find(x=>x.id===id);if(!canCraft(p))return;
+Object.entries(p.need).forEach(([k,v])=>S.res[k]-=v);
+S.crafting.push({id,end:S.crafting.length?0:now()+craftMs(p)});
+sHammer();uiDirty=true;save();
+}
+
+// ===== 튜토리얼 → 계속 이어지는 퀘스트 =====
+// k: 'shell'|'seaweed'|'wood'|'sold'|'crafted'|'earned' (누적 통계), 'made:상품', 'lv:업그레이드'(레벨 도달), 'decor:장식'
+const TUTORIAL=[
+{t:'조개를 3개 모아요',h:'주인공이 섬을 돌며 저절로 모아요',k:'shell',n:3,r:10},
+{t:'조개 목걸이를 만들어요',h:'아래 [상품 제작]을 눌러 보세요',k:'made:necklace',n:1,r:15,btn:'craft'},
+{t:'고양이 손님에게 팔아요',h:'완성품은 진열대에 놓이고 손님이 사 가요',k:'sold',n:1,r:15},
+{t:'채집 바구니를 Lv.2로',h:'[업그레이드]에서 채집 바구니를 올려요',k:'lv:basket',n:2,r:25,btn:'upgrade'},
+{t:'해초 화분을 2개 만들어요',h:'[상품 제작]에서 해초 화분',k:'made:pot',n:2,r:25,btn:'craft'},
+{t:'꽃 화분으로 가게를 꾸며요',h:'[꾸미기]에서 꽃 화분을 놓아요',k:'decor:flower',n:1,r:40,btn:'decor'},
+{t:'가게를 Lv.2로 확장해요',h:'[업그레이드]의 가게 확장 · 새 손님이 와요!',k:'lv:shop',n:2,r:80,btn:'upgrade'}];
+function qBase(k){if(k.startsWith('made:'))return(S.stats.made||{})[k.slice(5)]||0;if(k.startsWith('lv:')||k.startsWith('decor:'))return 0;return S.stats[k]||0}
+function qProg(q){const k=q.k;if(k.startsWith('lv:'))return S.lv[k.slice(3)];if(k.startsWith('decor:'))return S.decor[k.slice(6)]?1:0;return qBase(k)-q.base}
+const eul=w=>{const c=w.charCodeAt(w.length-1)-0xAC00;return w+(c>=0&&c%28?'을':'를')}; // 받침 따라 을/를
+// 튜토리얼이 끝나면 무작위 퀘스트 (점점 커짐)
+function nextQuest(){
+const ti=S.qi||0;
+if(ti<TUTORIAL.length){const t=TUTORIAL[ti];S.quest=Object.assign({},t,{base:0,tut:ti});return} // 튜토리얼은 미리 해 둔 것도 인정
+const s=S.qn||0,avail=PRODUCTS.filter(p=>p.lv<=S.lv.shop),pk=pick(avail);
+const pool=[
+()=>{const r=pick(['shell','seaweed','wood']);return{t:`${eul(RES[r])} ${10+s*2}개 모아요`,k:r,n:10+s*2}},
+()=>{const n=2+Math.floor(s/3);return{t:`${eul(pk.n)} ${n}개 만들어요`,k:'made:'+pk.id,n,btn:'craft'}},
+()=>({t:`고양이 손님에게 ${4+s}번 팔아요`,k:'sold',n:4+s}),
+()=>({t:`${60+s*25}G를 벌어요`,k:'earned',n:60+s*25})];
+const q=pick(pool)();q.r=Math.round(15+s*6+q.n*1.5);q.base=qBase(q.k);S.quest=q;
+}
+if(!S.stats.made)S.stats.made={};if(S.stats.earned==null)S.stats.earned=0;
+if(!S.quest)nextQuest();
+function goalTick(){}
+
+// ===== 화면 (HTML) =====
+let uiDirty=true;
+function bumpChip(k){const c=document.querySelector(`.chip[data-k="${k}"]`);if(c){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
+function renderRes(){
+$('#res').innerHTML=[['gold','coin',S.gold],['shell','shell',S.res.shell],['seaweed','seaweed',S.res.seaweed],['wood','wood',S.res.wood]].map(([k,ic,v])=>`<div class="chip" data-k="${k}" title="${k==='gold'?'골드':RES[k]}">${ii(ic,24)}<span>${fmt(v||0)}</span></div>`).join('');
+}
+function updateRes(){[['gold',S.gold],['shell',S.res.shell],['seaweed',S.res.seaweed],['wood',S.res.wood]].forEach(([k,v])=>{const c=document.querySelector(`.chip[data-k="${k}"] span`);if(c)c.textContent=fmt(v||0)})}
+function renderGoals(){
+const q=S.quest,cur=Math.min(q.n,Math.max(0,qProg(q))),done=cur>=q.n,tut=q.tut!=null;
+$('#goals').innerHTML=`<div class="qh"><span class="qtag">${tut?`튜토리얼 ${q.tut+1}/${TUTORIAL.length}`:`퀘스트 #${(S.qn||0)+1}`}</span><span class="qr">${ii('coin',14)} ${q.r}</span></div><div class="qt">${esc(q.t)}</div>${q.h&&!done?`<div class="qhint">${esc(q.h)}</div>`:''}<div class="qbar"><i style="width:${cur/q.n*100}%"></i><span>${cur}/${q.n}</span></div>${done?`<button class="btn qclaim" data-claim>보상 받기 +${q.r}G</button>`:''}`;
+if(done&&!q.ding){q.ding=1;sFind()}
+// 튜토리얼이 가리키는 버튼 반짝
+document.querySelectorAll('#dock .ibtn').forEach(b=>b.classList.toggle('hint',!done&&q.btn===b.dataset.act));
+}
+function renderCraft(){
+renderQueue();if(!$('#cards'))return;
+$('#cards').innerHTML=PRODUCTS.map(p=>{
+const locked=p.lv>S.lv.shop,qn=S.crafting.filter(c=>c.id===p.id).length,cur=S.crafting[0]&&S.crafting[0].id===p.id?S.crafting[0]:null;
+const need=Object.entries(p.need).map(([k,v])=>`<span class="${(S.res[k]||0)<v?'lack':''}">${ii(k,16)}${S.res[k]||0}/${v}</span>`).join('');
+const t=(craftMs(p)/1000).toFixed(0);
+let btn;if(locked)btn=`<button class="btn" disabled>가게 Lv.${p.lv}에 열림</button>`;
+else btn=`<button class="btn" data-craft="${p.id}" ${canCraft(p)?'':'disabled'}>${cur?`<i class="bar" data-bar="1"></i>제작 중${qn>1?' +'+(qn-1):''}`:qn?'대기 '+qn+' · 더 만들기':'제작하기'}</button>`;
+return `<div class="card ${locked?'locked':''}"><div class="ic">${ii(p.id,40)}<span>${ii('clock',12)} ${t}초</span></div><div class="bd"><b>${p.n}</b><div class="need">${need}</div><div class="stock">${ii('coin',12)} ${p.price}G · 진열 ${S.stock[p.id]||0}</div>${btn}</div></div>`}).join('');
+}
+function renderUpg(){
+if(!$('#upgList'))return;
+$('#upgList').innerHTML=UPGRADES.map(u=>{const l=S.lv[u.id],max=l>=u.max,cost=u.cost[l-1];
+return `<div class="urow"><div class="tx">${u.n} <b style="font-weight:400;color:var(--orange2)">Lv.${l}</b><small>${max?u.eff(l):u.eff(l)+' → '+u.eff(l+1)}</small></div>${max?'<span style="font-size:11px;color:#9a7a60">MAX</span>':`<button class="btn or" data-upg="${u.id}" ${S.gold>=cost?'':'disabled'}>${ii('coin',12)} ${cost}</button>`}</div>`}).join('');
+}
+function renderAll(){renderRes();renderGoals();renderCraft();renderUpg();uiDirty=false}
+// 자주 바뀌는 것만 가볍게 갱신
+setInterval(()=>{
+if(uiDirty){updateRes();renderGoals();renderCraft();renderUpg();uiDirty=false}
+const b=document.querySelector('[data-bar]');if(b&&S.crafting[0]){const p=PRODUCTS.find(x=>x.id===S.crafting[0].id),left=S.crafting[0].end-now();b.style.width=Math.max(0,Math.min(100,100-left/craftMs(p)*100))+'%'}
+},200);
+
+document.addEventListener('click',e=>{
+const c=e.target.closest('[data-craft]');if(c){craft(c.dataset.craft);return}
+const u=e.target.closest('[data-upg]');if(u){buyUpg(u.dataset.upg);return}
+const g=e.target.closest('[data-claim]');if(g){const q=S.quest;if(qProg(q)<q.n)return;S.gold+=q.r;sFanfare();bumpChip('gold');
+if(q.tut!=null){S.qi=(S.qi||0)+1;if(S.qi>=TUTORIAL.length)toast('튜토리얼 완료! 이제 새로운 퀘스트가 계속 찾아와요','heart')}else S.qn=(S.qn||0)+1;
+nextQuest();uiDirty=true;save();return}
+const a=e.target.closest('[data-act]');if(!a)return;sPop();
+const k=a.dataset.act;
+if(k==='craft')openCraft();if(k==='upgrade')openUpg();
+if(k==='dex')openDex();if(k==='settings')openSettings();if(k==='decor')openDecor();if(k==='talk')openTalk();
+});
+// 상품 제작 / 가게 업그레이드: 화면 가운데 창으로 열기 (열려 있는 동안 계속 갱신)
+function openCraft(){modal('상품 제작','<div class="qinfo" id="qinfo"></div><div id="cards" class="cgrid2"></div>','necklace');renderCraft()}
+function openUpg(){modal('가게 업그레이드','<div id="upgList"></div>','shop');renderUpg()}
+function renderQueue(){
+const q=$('#qinfo');const b=$('#craftBadge');const n=S.crafting.length;
+if(b){b.hidden=!n;b.textContent=n}
+if(!q)return;q.innerHTML=`<div style="display:flex;justify-content:space-between;font-size:12px;color:#8a6a50;margin-bottom:8px"><span>제작 대기 ${n}/${maxQueue()}</span><span>진열대 ${stockTotal()}/${shelfCap()}</span></div>`;
+}
+function buyUpg(id){const u=UPGRADES.find(x=>x.id===id),l=S.lv[id];if(l>=u.max)return;const cost=u.cost[l-1];if(S.gold<cost)return;S.gold-=cost;S.lv[id]++;sFanfare();burst(hero.x,hero.y-60);toast(`${u.n} Lv.${S.lv[id]}! ${u.eff(S.lv[id])}`,'heart');uiDirty=true;save()}
+
+// ===== 창 =====
+function modal(title,body,icon){const m=$('#modal');m.innerHTML=`<div class="dlg panel${title?'':' notitle'}">${title?`<h3>${icon?ii(icon,22):''}${esc(title)}</h3>`:''}<button class="x" data-close>×</button><div class="in">${body}</div></div>`;m.hidden=false;m.onclick=e=>{if(e.target===m||e.target.closest('[data-close]')){sPop();m.hidden=true}};paintIcons(m)}
+// 초상화 잘라 그리기
+function portraitCanvas(k,w=160){const r=CAT_PT[k],c=document.createElement('canvas');c.width=w;c.height=Math.round(w*r[3]/r[2]);const g=c.getContext('2d');g.imageSmoothingQuality='high';if(IMG.catpt)g.drawImage(IMG.catpt,r[0],r[1],r[2],r[3],0,0,c.width,c.height);return c}
+function openDex(){
+const n=Object.keys(S.dex).length,nw=S.dexNew||{};
+// 새로 해금된 카드: 가려진 뒷면(???) → 빙글 뒤집혀 프로필 공개
+const face=(c,i)=>`<b>${S.dex[i]?c.n:'???'}</b><small>${S.dex[i]?c.look+'<br>'+c.p:'아직 만나지 못했어요'}</small>`;
+modal(`주민 도감 ${n}/12`,`<div class="dex">${CATS.map((c,i)=>nw[i]?`<div class="dexc new" data-k="${i}"><div class="fl"><div class="ff">${face(c,i)}</div><div class="fb"><i>?</i><b>???</b><small>새 주민!</small></div></div><em class="newtag">NEW</em></div>`:`<div class="dexc ${S.dex[i]?'':'no'}" data-k="${i}">${face(c,i)}</div>`).join('')}</div>`,'catface');
+document.querySelectorAll('.dexc').forEach(d=>{const t=d.querySelector('.ff')||d;t.insertBefore(portraitCanvas(+d.dataset.k,140),t.firstChild)});
+const first=document.querySelector('.dexc.new');
+if(first){first.scrollIntoView({block:'center'});setTimeout(()=>{sBabam();document.querySelectorAll('.dexc.new').forEach(d=>d.classList.add('go'))},450);S.dexNew={};save()}
+}
+function openDecor(){
+const body=()=>DECOR.map(d=>`<div class="drow">${ii(d.icon,40)}<div class="tx">${d.n}<small>${d.d}</small></div>${S.decor[d.id]?'<span style="color:var(--green2)">설치됨</span>':`<button class="btn or" data-buyd="${d.id}" ${S.gold>=d.cost?'':'disabled'}>${ii('coin',12)} ${d.cost}</button>`}</div>`).join('');
+modal('가게 꾸미기',`<div class="dlist">${body()}</div>`,'pot');
+$('#modal .dlist').onclick=e=>{const b=e.target.closest('[data-buyd]');if(!b)return;const d=DECOR.find(x=>x.id===b.dataset.buyd);if(S.gold<d.cost)return;S.gold-=d.cost;S.decor[d.id]=1;sDone();burst(d.x,d.y-30);uiDirty=true;save();$('#modal .dlist').innerHTML=body()};
+}
+function openSettings(){
+// 소리마다 따로 켜고 끄고, ▶로 하나씩 들어 볼 수 있음 (이상한 소리 찾기용)
+const srow=(k,label,on)=>`<div class="row"><span>${label}</span><span class="sr"><button class="play" data-test="${k}">▶</button><button class="tog ${on?'on':''}" data-set="${k}"></button></span></div>`;
+const body=()=>srow('bgm','배경음악',S.bgm)+srow('wave','파도 소리',S.wave!==false)+srow('gull','갈매기 소리',S.gull!==false)+srow('sound','효과음',S.sound)+`<div class="row"><span>진행 상황</span><span style="font-size:11px;color:#9a7a60">판매 ${S.stats.sold} · 제작 ${S.stats.crafted} · 주민 ${Object.keys(S.dex).length}/12</span></div><div class="row"><span>처음부터 다시 하기</span><button class="btn or" data-set="reset">초기화</button></div><div style="font-size:11px;color:#9a7a60;margin-top:6px">게임은 켜 둔 동안에만 진행돼요. 진행 상황은 이 기기에 자동 저장돼요.</div>`;
+modal('설정',`<div class="sbody">${body()}</div>`,'gear');
+$('#modal .sbody').onclick=e=>{
+const tb=e.target.closest('[data-test]');if(tb){audio();const k=tb.dataset.test;if(k==='wave')sWave(true);if(k==='gull')sGull(true);if(k==='bgm')bgmPreview();if(k==='sound'){const was=S.sound;S.sound=true;setBus();sCoin();setTimeout(sHammer,450);setTimeout(()=>sMeow(3),900);setTimeout(()=>{S.sound=was;setBus()},1500)}return}
+const b=e.target.closest('[data-set]');if(!b)return;const k=b.dataset.set;
+if(k==='sound'||k==='bgm'){S[k]=!S[k];setBus()}if(k==='wave'||k==='gull')S[k]=S[k]===false;
+if(k!=='reset'){save();$('#modal .sbody').innerHTML=body();return}
+if(k==='reset'){if(confirm('정말 처음부터 다시 할까요? 모든 진행 상황이 지워져요.')){resetting=true;localStorage.removeItem(KEY);location.reload()}}};
+}
+function heroPortrait(w){const r=HERO_PT,c=document.createElement('canvas');c.width=w;c.height=Math.round(w*r[3]/r[2]);const g=c.getContext('2d');g.imageSmoothingQuality='high';if(IMG.heropt)g.drawImage(IMG.heropt,r[0],r[1],r[2],r[3],0,0,c.width,c.height);return c}
+function openTalk(first){
+const lines=first?['어서 와요! 여기는 고양이들이 사는 작은 해변섬이에요.','저는 섬을 돌아다니며 조개·해초·유목을 모을게요. 모인 재료로 아래에서 상품을 만들어 주세요!','완성된 상품은 가게에 진열되고, 고양이 손님들이 와서 사 가요. 번 돈으로 가게를 키워 봐요 ♡']:[pick(['오늘도 바닷바람이 기분 좋아요!','고양이 손님들 정말 귀엽죠? 도감을 다 채워 보고 싶어요.','바구니를 업그레이드하면 한 번에 더 많이 모을 수 있어요.','가게를 확장하면 새로운 상품을 만들 수 있어요!','꾸미기를 하면 손님이 더 자주 와요.'])];
+let i=0;
+modal(first?'고양이 해변섬에 오신 걸 환영해요':'주인공','<div class="talk"><span class="pt"></span><div class="bub"></div></div><div style="text-align:right;margin-top:10px"><button class="btn" data-next>다음</button></div>','heart');
+$('#modal .pt').replaceWith(heroPortrait(150));
+const show=()=>{$('#modal .bub').textContent=lines[i];$('#modal [data-next]').textContent=i<lines.length-1?'다음':'시작하기'};show();
+$('#modal [data-next]').onclick=()=>{sPop();i++;if(i>=lines.length){$('#modal').hidden=true;if(first){S.intro=true;save()}}else show()};
+}
+let toastT;
+function toast(msg,ic){const t=$('#toast');t.innerHTML=(ic?ii(ic,24):'')+`<span>${esc(msg)}</span>`;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,2800)}
+function toastCat(k){const t=$('#toast');t.innerHTML='';t.appendChild(portraitCanvas(k,46));t.insertAdjacentHTML('beforeend',`<span><b style="font-weight:400;color:var(--orange2)">새 주민 발견!</b><br>${esc(CATS[k].n)} · ${esc(CATS[k].look)}</span>`);t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,3200);sFind()}
+
+// ===== 시작 =====
+(async()=>{
+await Promise.all([load('bg1','assets/island.png'),load('cats','assets/cat_frames.png'),load('catpt','assets/cat_portraits.png'),load('hero','assets/hero.png'),load('heropt','assets/hero_portrait.png')]);
+// 로고: 귤이 얼굴
+const lc=$('#logoCat'),lg=lc.getContext('2d');lg.imageSmoothingQuality='high';const r=CAT_PT[0];if(IMG.catpt)lg.drawImage(IMG.catpt,r[0],r[1],r[2],r[2]*.84,0,4,84,84*.84);
+// 캐릭터는 대비↑로 또렷하게 (한 번만 미리 처리). 배경 색감은 그림 파일 그대로 사용
+const tuned=(img,f)=>{if(!img)return img;const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.filter=f;g.drawImage(img,0,0);return c};IMG.cats=tuned(IMG.cats,'contrast(1.2) saturate(1.12)');IMG.hero=tuned(IMG.hero,'contrast(1.18) saturate(1.1)');
+bakeCats();paintIcons();renderAll();resize();
+// 이어서 할 때는 섬 전체가 보이게 시작
+if(S.intro){zoom=islandZoom();view.s=view.base*zoom;cam.x=ISLAND.x;cam.y=ISLAND.y;clampCam()}
+Object.keys(S.dexNew||{}).forEach(k=>introQ.push(+k)); // 인사를 못 보고 껐던 고양이
+// 진행 중이던 제작은 다시 켰을 때 남은 시간부터 (꺼져 있던 동안은 진행하지 않음)
+if(S.crafting.length){const p=PRODUCTS.find(x=>x.id===S.crafting[0].id);S.crafting[0].end=now()+(S.crafting[0].left||craftMs(p))}
+requestAnimationFrame(t=>{last=t;loop(t)});
+if(!S.intro)startOpening();
+})();
+// 처음 이야기: 왼쪽 아래에 큰 초상화, 아래쪽(제작 버튼 자리)에 대사창. [시작하기] 전까지 손님은 오지 않음
+// 오프닝: 바다 전경 → 타이틀이 툭 떨어지고 양옆 구름 펑 → 사라지면 가게로 클로즈업 → 주인공이 화면 밖에서 걸어 들어옴 → 대사
+let openingOn=false;
+function startOpening(){
+const op=$('#opening'),gm=$('#game');openingOn=true;gm.classList.add('opening');
+hero.state='hidden';hero.x=HOME[0];hero.y=HOME[1];
+zoom=1;view.s=view.base;cam.x=WORLD_W/2;cam.y=WORLD/2;clampCam();
+op.hidden=false;op.classList.remove('bye');
+const oc=op.querySelector('.ocat'),og=oc.getContext('2d'),pr=CAT_PT[0];og.imageSmoothingQuality='high';if(IMG.catpt)og.drawImage(IMG.catpt,pr[0],pr[1],pr[2],pr[2]*.84,0,0,140,118);
+const T0=[];let skipped=false;const at=(ms,f)=>T0.push(setTimeout(f,ms));
+at(850,()=>{tone(180,120,.12,.2,'triangle');sPop()}); // 쿵!
+at(1000,()=>{tone(523,523,.25,.06,'triangle');tone(784,784,.35,.05,'triangle',.08)});
+const next=()=>{if(skipped)return;skipped=true;T0.forEach(clearTimeout);
+op.classList.add('bye');setTimeout(()=>{op.hidden=true;openingOn=false;gm.classList.remove('opening')},600);
+// 가게 쪽으로 클로즈업 (주인공이 설 자리가 초상화·대사창에 가리지 않게)
+const z=Math.min(ZMAX,2),s=view.base*z;
+flyTo(HOME[0]-(view.W*(view.W<600?.8:.68)-view.W/2)/s,HOME[1]-(view.H*.4-view.H/2)/s,z,1.8,()=>{ // 다 다가가면 화면 오른쪽 밖에서 걸어 들어오기
+hero.x=(view.W-view.ox)/view.s+60;hero.y=HOME[1];hero.state='enter';
+hero.onArrive=()=>setTimeout(startStory,500)})};
+at(3200,next);op.onclick=()=>{audio();next()}; // 누르면 바로 넘어감
+}
+function startStory(){
+const lines=['와앗~!! 어서 와요!!','연락은 받은 지 이미 오래돼서, 오시기만을 손꼽아 기다리고 있었어요!','이 가게를 도와주신다고 하셨다면서요? 정말 고마워요~!','저는 섬을 돌아다니며 조개·해초·유목을 모아 올게요.','모인 재료로 상품을 만들어 진열하면 고양이 손님들이 사러 와요. 우리 함께 가게를 키워 봐요! ♡'];
+const st=$('#story'),p=st.querySelector('.txt'),btn=st.querySelector('.btn');let i=0;
+st.querySelector('.pt').replaceWith(Object.assign(heroPortrait(560),{className:'pt'}));
+$('#game').classList.add('storymode');st.hidden=false;
+// 대사창 높이를 재서 초상화를 그 위에 세움 (화면 크기 바뀔 때도)
+const fit=()=>{if(!st.hidden){const b=st.querySelector('.sbox');st.style.setProperty('--bh',(b.offsetHeight+parseFloat(getComputedStyle(b).bottom))+'px')}};
+// 초상화·대사창에 가리지 않게 주인공이 화면 오른쪽 위쪽에 보이도록 카메라 이동
+// 이야기 동안은 주인공을 크게 확대해서 보여줌
+zoom=Math.min(ZMAX,2);view.s=view.base*zoom;
+const aim=()=>{if(S.intro)return;cam.x=hero.x-(view.W*(view.W<600?.8:.68)-view.W/2)/view.s;cam.y=hero.y-(view.H*.4-view.H/2)/view.s;clampCam()};aim();
+addEventListener('resize',fit);addEventListener('resize',aim);
+const show=()=>{typeText(p,lines[i]);btn.textContent=i<lines.length-1?'다음 ▶':'시작하기';fit()};show();
+st.querySelector('.sbox').onclick=()=>{
+if(i>=lines.length)return; // 이미 끝남 (사라지는 중에 또 누른 경우)
+if(p._t&&p.textContent.length<lines[i].length){clearInterval(p._t);p.textContent=lines[i];return} // 글자가 나오는 중이면 한 번에 다 보여 줌
+audio();sPop();i++;if(i<lines.length){show();return}
+st.classList.add('out');setTimeout(()=>{st.hidden=true;st.classList.remove('out')},350);$('#game').classList.remove('storymode');
+S.intro=true;spawnT=3;hero.state='walk';hero.emote=HERO_ANIM.happy[1];hero.emoteT=.8;save();uiDirty=true; // 시작! → 자동 채집 출발
+flyTo(ISLAND.x,ISLAND.y,islandZoom(),1.8); // 섬 전체가 보이게 쭉 축소
+};
+}
+// 인터넷에 올렸을 때(https): 오프라인에서도 열리게 파일 저장 (안드로이드 앱 안에서는 필요 없음)
+if('serviceWorker' in navigator&&location.protocol==='https:'&&location.hostname!=='catisland.example')navigator.serviceWorker.register('sw.js').catch(()=>{});
+// 아이폰 Safari: 두 손가락 확대가 화면 전체 확대로 새지 않게
+document.addEventListener('gesturestart',e=>e.preventDefault());
+// 끌 때 남은 제작 시간 기억
+function remember(){if(S.crafting[0])S.crafting[0].left=Math.max(0,S.crafting[0].end-now());save()}
+addEventListener('pagehide',remember);document.addEventListener('visibilitychange',()=>{if(AC){if(document.hidden){AC.suspend();bgmEl.pause()}else{AC.resume();startBgm()}}if(document.hidden)remember();else if(S.crafting[0]&&S.crafting[0].left!=null){S.crafting[0].end=now()+S.crafting[0].left;S.crafting[0].left=null}});
+</script>
+</body>
+</html>
