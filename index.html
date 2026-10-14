@@ -153,6 +153,11 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 @keyframes shine{from{background-position:150% 0}to{background-position:-100% 0}}
 .chip .ptime{position:absolute;left:50%;top:100%;transform:translateX(-50%);margin-top:4px;white-space:nowrap;font-style:normal;font-size:11px;color:#fff;background:#e0521a;border:2px solid #fff;border-radius:8px;padding:0 6px}
 .chip .ptime:empty{display:none}
+/* 폰: 칸이 좁아서 불꽃은 칸 모서리에 띄우고, 숫자가 칸 밖으로 나가지 않게 */
+#game.port .chip.peak .fire,#game.small .chip.peak .fire{position:absolute;left:-7px;top:-11px;font-size:15px}
+#game.port .chip span,#game.small .chip span{min-width:0;white-space:nowrap}
+#game.port .chip{padding:4px 6px 4px 4px;gap:3px}
+#game.port .chip .ptime,#game.small .chip .ptime{left:0;transform:none;font-size:10px;padding:0 4px}
 /* 튜토리얼 안내 화살표 (통통 튀면서 가리킴) */
 #coach{position:fixed;z-index:70;pointer-events:none;display:flex;flex-direction:column;align-items:center;transition:left .25s,top .25s}
 #coach[hidden]{display:none}
@@ -165,6 +170,9 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 #coach .ctxt{margin:4px 0;max-width:220px;text-align:center;font-size:12px;line-height:1.45;color:var(--ink);background:rgba(255,250,238,.95);border:2px solid #e3c9a0;border-radius:10px;padding:5px 10px;box-shadow:0 2px 0 rgba(90,55,30,.2);white-space:normal}
 /* 제작 창 위로 띄운 주문 대기열 (튜토리얼 안내용) */
 #ordersLift{position:fixed;z-index:65;display:flex;align-items:flex-start;gap:8px;pointer-events:none;filter:drop-shadow(0 0 10px rgba(255,240,180,.95));animation:pop .25s}
+#ordersCraft{position:fixed;z-index:65;left:10px;display:flex;align-items:flex-start;gap:5px;pointer-events:none;max-width:calc(100% - 16px)}
+#ordersCraft .otag{align-self:center;font-size:11px;color:#fff;background:var(--brown);border-radius:9px;padding:3px 6px;box-shadow:0 2px 0 #5a3a22;white-space:nowrap}
+#ordersCraft .ord{gap:3px;padding:3px 6px 9px 3px;animation:none}#ordersCraft .ord .face{width:36px;height:36px}#ordersCraft .ord img.px{width:26px!important;height:26px!important}
 #ordersLift .otag{align-self:center;font-size:13px;color:#fff;background:var(--brown);border-radius:9px;padding:4px 9px;box-shadow:0 2px 0 #5a3a22}
 /* 손님 주문 대기열 (타이쿤처럼 화면 위쪽 가운데) */
 #orders{position:absolute;left:50%;top:72px;transform:translateX(-50%);display:flex;align-items:flex-start;gap:8px;pointer-events:none;z-index:3}
@@ -180,7 +188,8 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 .ord.come .bar{display:none}
 .ord.hurry{animation:hurry .5s infinite alternate}
 @keyframes hurry{to{border-color:#ef6a4a}}
-#game.port #orders{top:122px;gap:5px;max-width:calc(100% - 16px)}
+#game.port #orders{top:122px;gap:5px;max-width:calc(100% - 16px);left:10px;transform:none} /* 폰: 왼쪽 정렬 */
+#game.small #orders{left:8px;transform:none}
 #game.port .ord{gap:3px;padding:3px 6px 9px 3px}
 #game.port .ord .face{width:36px;height:36px}
 #game.port .ord img.px{width:26px!important;height:26px!important}
@@ -313,6 +322,10 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 .dex{grid-template-columns:repeat(3,1fr)}
 .tog{width:56px;height:30px}.tog::after{width:22px;height:22px}.tog.on::after{left:28px}
 }
+/* 관계 미니 이야기: 아래쪽 분홍 띠 (누가 이야기 중인지 + 탭 안내) */
+#mini{position:fixed;left:50%;bottom:calc(110px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:46;padding:7px 16px;border-radius:999px;background:rgba(255,234,241,.95);border:3px solid #e0708f;box-shadow:0 3px 0 rgba(160,60,90,.3);color:#8a3a52;font-size:14px;white-space:nowrap;pointer-events:none;animation:pop .25s}
+#mini small{margin-left:8px;font-size:11px;color:#c0708a}
+#mini[hidden]{display:none}
 /* ===== 고양이 섬의 소문 ===== */
 #hud .ibtn{position:relative}
 .rlist .rty{margin:12px 0 6px;font-size:13px;color:var(--brown)}
@@ -356,7 +369,7 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 .rrew p{margin:0 0 10px;font-size:13px;line-height:1.7}
 @media (max-width:600px){.rbox{padding:14px 12px 12px}.rtxt{font-size:14px}#rumor .rbig{height:min(26vh,210px);max-width:62vw;left:4px;filter:drop-shadow(0 0 3px rgba(255,255,255,.55))}
 /* 폰: 컷신은 위쪽, 대사창은 아래쪽에 붙여서 그 사이 빈 곳에 초상화가 서도록 (컷신을 가리지 않게) */
-#rumor{justify-content:flex-start;padding-top:max(64px,calc(env(safe-area-inset-top) + 52px))}#rumor .rbox{margin-top:auto}}
+#rumor{justify-content:flex-start;padding-top:max(56px,calc(env(safe-area-inset-top) + 48px))}#rumor .rbox{margin-top:auto}#rumor .rcut{width:min(66vw,34vh,300px)}}
 .sr{display:flex;gap:8px;align-items:center}
 .play{width:34px;height:30px;border-radius:10px;border:3px solid var(--brown2);background:#fff8c4;color:var(--brown);font-size:12px;padding:0;box-shadow:0 3px 0 var(--brown2)}
 .play:active{transform:translateY(2px);box-shadow:0 1px 0 var(--brown2)}
@@ -385,6 +398,7 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 <div id="opening" hidden><div class="otitle"><i class="cl l1"></i><i class="cl l2"></i><i class="cl r1"></i><i class="cl r2"></i><canvas class="ocat" width="140" height="118"></canvas><b>고양이 해변섬</b><small>~ Cat Beach Island ~</small></div></div>
 <div id="story" hidden><canvas class="pt"></canvas><div class="sbox panel"><span class="nm">가게 주인</span><p class="txt"></p><button class="btn"></button></div></div>
 <div id="toast" class="panel" hidden></div>
+<div id="mini" hidden></div>
 <div id="rumor" hidden><div class="rtitle"><em></em><b></b></div><div class="rcut"><canvas width="360" height="360"></canvas><span class="rdots"></span></div><div class="rbox panel"><div class="rtx"><b class="rnm"></b><p class="rtxt"></p></div><span class="rnext">▼</span></div><button class="rskip">건너뛰기 ▸▸</button></div>
 <!-- 튜토리얼 안내 화살표: 투명한 흰 테두리 · 안쪽 아이보리 · 꼬리는 투명하게 사라짐 -->
 <div id="coach" hidden><svg viewBox="0 0 44 70" width="44" height="70"><defs>
@@ -428,18 +442,65 @@ const GLOW=12;let CAT_SPR=null,CAT_WORK=null;
 // 6번째 값: 아래로 내리는 정도 · 7번째 값: 크기 배율 (정면 앞치마는 얼굴과 다리가 다 보이게 조금 작게, 살짝 아래로)
 const OUTFIT=[[39,5,56,31,0],[200,4,43,42,1],[305,4,43,42,2],[390,2,58,34,3],[37,102,64,52,0,4,.84],[166,90,79,51,1],[272,92,79,51,2],[386,90,63,52,3]];
 const OUT_PAD=10; // 내린 앞치마 끝이 잘리지 않게 아래쪽 여백
-function frameCanvas(k,fi,work){const r=CAT_FR[k][fi],pad=work?OUT_PAD:0,c=document.createElement('canvas');c.width=r[2];c.height=r[3]+pad;c.padB=pad;const g=c.getContext('2d');g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
+function frameCanvas(k,fi,work){const r=CAT_FR[k][fi],pad=work?OUT_PAD:0,c=document.createElement('canvas');c.width=r[2];c.height=r[3]+pad;c.padB=pad;const g=c.getContext('2d');g.imageSmoothingQuality='high';g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
 if(work&&IMG.outfit){const r0=CAT_FR[0][fi],sx=r[2]/r0[2],sy=r[3]/r0[3],s=(sx+sy)/2;for(const p of OUTFIT)if(p[4]===fi){const z=s*(p[6]||1);g.drawImage(IMG.outfit,p[0],p[1],p[2],p[3],(p[0]-r0[0]+p[2]/2)*sx-p[2]*z/2,(p[1]-r0[1]+(p[5]||0))*sy,p[2]*z,p[3]*z)}}return c}
 function glowed(src){const c=document.createElement('canvas');c.padB=src.padB||0;c.width=src.width+GLOW*2;c.height=src.height+GLOW*2;const g=c.getContext('2d');
 g.shadowColor='rgba(255,248,228,.95)';g.shadowBlur=GLOW;g.drawImage(src,GLOW,GLOW);g.shadowBlur=GLOW/3;g.drawImage(src,GLOW,GLOW);g.shadowColor='transparent';g.drawImage(src,GLOW,GLOW);return c}
-function bakeCats(){if(!IMG.cats)return;CAT_SPR=CAT_FR.map((fr,k)=>fr.map((r,fi)=>glowed(frameCanvas(k,fi,false))));
+// ----- 밤에 은은하게 빛나는 눈: 프레임마다 눈동자(색 있는 홍채)만 찾아서 빛 그림을 미리 만들어 둠 (검은 눈알·흰 반짝이 제외) -----
+// 찾는 법: 얼굴 높이(30~72%)의 진하고 밝은 색 덩어리 중, 안에 까만 눈알이 충분히 있는 것 (털 무늬는 까만 부분이 없어서 빠짐)
+// 딸기(별 눈)·뒷모습은 제외 / 귤이는 눈 색이 털색과 비슷해서 털색 제외 규칙을 쓰지 않음
+const hsv=(r,g,b)=>{r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=((g-b)/d)%6;else if(mx===g)h=(b-r)/d+2;else h=(r-g)/d+4;h*=60;if(h<0)h+=360}return[h,mx?d/mx:0,mx]};
+let EYE=null;
+// 딸기: 별 눈이라 눈 안의 흰 별 반짝이만 은은하게 빛남 (까만 눈알·이마의 별은 빛나지 않음)
+function berryGlow(c){const W=c.width,H=c.height,d=c.getContext('2d').getImageData(0,0,W,H).data,V=i=>Math.max(d[i*4],d[i*4+1],d[i*4+2])/255,o=document.createElement('canvas');o.width=W;o.height=H;
+const og=o.getContext('2d'),od=og.createImageData(W,H),put=(q,r,g,b,a)=>{od.data[q*4]=r;od.data[q*4+1]=g;od.data[q*4+2]=b;od.data[q*4+3]=a};
+const comps=(test,ya,yb)=>{const lab=new Uint8Array(W*H),out=[];for(let y=Math.floor(H*ya);y<H*yb;y++)for(let x=0;x<W;x++){const i=y*W+x;if(lab[i]||!test(i))continue;const st=[i],pts=[];lab[i]=1;let x0=W,x1=0,y0=H,y1=0;
+while(st.length){const j=st.pop();pts.push(j);const px=j%W,py=(j/W)|0;x0=Math.min(x0,px);x1=Math.max(x1,px);y0=Math.min(y0,py);y1=Math.max(y1,py);for(const nq of[j+1,j-1,j+W,j-W]){const ny=(nq/W)|0;if(nq<0||nq>=W*H||ny<H*ya||ny>=H*yb||lab[nq]||!test(nq))continue;lab[nq]=1;st.push(nq)}}out.push({pts,x0,x1,y0,y1})}return out};
+let n=0;
+// 눈: 동그랗게 뭉친 까만 덩어리 + 그 안의 밝은 별
+for(const e of comps(i=>d[i*4+3]>200&&V(i)<.28,.36,.74)){const w=e.x1-e.x0+1,h=e.y1-e.y0+1;if(e.pts.length<40||e.pts.length>1200||w/h<.55||w/h>1.8||(e.x0+e.x1)/2<W*.12||(e.x0+e.x1)/2>W*.88)continue;
+const dk=new Set(e.pts),enc=(x,y)=>[[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>{for(let t=1;t<=30;t++){/* 정면 별은 커서 끝까지 넉넉히 확인 */const nx=x+dx*t,ny=y+dy*t;if(nx<e.x0||nx>e.x1||ny<e.y0||ny>e.y1)return false;if(dk.has(ny*W+nx))return true}return false});
+// (까만 눈알 자체는 빛나지 않음)
+// 별 반짝이: 까만 눈알에 둘러싸인 밝은 부분만 (눈 옆의 밝은 털은 빠짐)
+const st=new Set();for(let y=e.y0;y<=e.y1;y++)for(let x=e.x0;x<=e.x1;x++){const q=y*W+x;if(dk.has(q)||d[q*4+3]<200||V(q)<.42||!enc(x,y))continue;st.add(q)}
+// 별 가장자리(조금 어두운 부분)까지 1픽셀 더 감싸서 별 모양 전체가 빛나게
+for(const q of[...st])for(const nq of[q+1,q-1,q+W,q-W]){if(st.has(nq)||dk.has(nq)||nq<0||nq>=W*H||d[nq*4+3]<200||V(nq)<.3)continue;st.add(nq)}
+for(const q of st)put(q,255,250,240,150);n++}
+if(!n)return null;og.putImageData(od,0,0);const e=document.createElement('canvas');e.width=W+GLOW*2;e.height=H+GLOW*2;const eg=e.getContext('2d');eg.shadowColor='rgba(255,210,235,.85)';eg.shadowBlur=6;eg.drawImage(o,GLOW,GLOW);eg.shadowBlur=0;eg.globalAlpha=.6;eg.drawImage(o,GLOW,GLOW);return e}
+function eyeGlow(k,fi){const c=frameCanvas(k,fi,false),W=c.width,H=c.height;if(fi===3)return null;if(k===7)return berryGlow(c);const d=c.getContext('2d').getImageData(0,0,W,H).data,V=i=>Math.max(d[i*4],d[i*4+1],d[i*4+2])/255;
+const bins=new Array(36).fill(0);let n=0;for(let i=0;i<W*H;i++){if(d[i*4+3]<200)continue;n++;const[h,s,v]=hsv(d[i*4],d[i*4+1],d[i*4+2]);if(s>.35&&v>.35)bins[Math.floor(h/10)%36]++}
+const fb=bins.indexOf(Math.max(...bins)),furSat=k!==0&&bins[fb]>n*.06,m=new Uint8Array(W*H);
+for(let y=Math.floor(H*.3);y<H*.72;y++)for(let x=0;x<W;x++){const i=y*W+x;if(d[i*4+3]<200)continue;const[h,s,v]=hsv(d[i*4],d[i*4+1],d[i*4+2]);if(s<.42||v<.42||h<22||h>290)continue;if(furSat&&Math.abs(((h-(fb*10+5))+540)%360-180)<9)continue;m[i]=1}
+const lab=new Int32Array(W*H),o=document.createElement('canvas');o.width=W;o.height=H;const og=o.getContext('2d'),od=og.createImageData(W,H);let id=0,cnt=0,cr=0,cg=0,cb=0;
+for(let i=0;i<W*H;i++){if(!m[i]||lab[i])continue;id++;const st=[i],pts=[];lab[i]=id;let x0=W,x1=0,y0=H,y1=0;
+while(st.length){const j=st.pop();pts.push(j);const x=j%W,y=(j/W)|0;x0=Math.min(x0,x);x1=Math.max(x1,x);y0=Math.min(y0,y);y1=Math.max(y1,y);for(const[dx,dy]of[[1,0],[-1,0],[0,1],[0,-1]]){const nx=x+dx,ny=y+dy;if(nx<0||ny<0||nx>=W||ny>=H)continue;const q=ny*W+nx;if(m[q]&&!lab[q]){lab[q]=id;st.push(q)}}}
+let dark=0;for(let y=y0;y<=y1;y++)for(let x=x0;x<=x1;x++){const q=y*W+x;if(d[q*4+3]>200&&V(q)<.2)dark++}
+const cx=(x0+x1)/2;if(pts.length<12||pts.length>700||cx<W*.14||cx>W*.86||dark<pts.length*.3)continue;
+// 색 있는 홍채: 원래 색을 살짝만 밝게, 반투명으로 (은은하게)
+for(const p of pts){for(let j=0;j<3;j++)od.data[p*4+j]=Math.min(255,d[p*4+j]*1.08+12);od.data[p*4+3]=150;cr+=d[p*4];cg+=d[p*4+1];cb+=d[p*4+2];cnt++}
+// 눈 안의 흰 반짝이도 비슷한 밝기로 같이 빛남 (검은 눈알은 제외)
+// 눈 안쪽에 둘러싸인 흰 점만 (위·아래·왼·오른쪽 모두 가까이에 눈동자/눈알이 있어야 함) → 흰 털 등 바깥으로 삐져나간 조각은 빠짐
+// 홍채는 눈 아래쪽 초승달 모양이라, 찾는 범위를 눈 전체(위쪽으로 눈 지름만큼)로 넓힘
+const er=Math.max(x1-x0,y1-y0),X0=Math.max(0,x0-2),X1=Math.min(W-1,x1+2),Y0=Math.max(0,y1-er-4),Y1=y1;
+const inEye=q=>m[q]||(d[q*4+3]>200&&V(q)<.2),wc=[];
+const enclosed=(x,y)=>[[1,0],[-1,0],[0,1],[0,-1]].every(([dx,dy])=>{for(let t=1;t<=7;t++){const nx=x+dx*t,ny=y+dy*t;if(nx<X0||nx>X1||ny<Y0||ny>Y1)return false;const q=ny*W+nx;if(inEye(q))return true}return false});
+for(let y=Y0;y<=Y1;y++)for(let x=X0;x<=X1;x++){const q=y*W+x;if(d[q*4+3]<200||m[q])continue;const[,s,v]=hsv(d[q*4],d[q*4+1],d[q*4+2]);if(v>.6&&s<.3&&enclosed(x,y))wc.push(q)}
+// 반짝이 가장자리(조금 어두운 흰색)까지 한 덩어리로 · 진짜 흰 점이 들어 있고 3픽셀 이상인 덩어리만 (짜투리는 버림)
+const ws=new Set(wc),seenW=new Set();for(const q0 of wc){if(seenW.has(q0))continue;const grp=[],st=[q0];seenW.add(q0);while(st.length){const q=st.pop();grp.push(q);for(const nq of[q+1,q-1,q+W,q-W])if(ws.has(nq)&&!seenW.has(nq)){seenW.add(nq);st.push(nq)}}
+if(grp.length>=3&&grp.some(q=>V(q)>.86)){const gs=new Set(grp);for(const q of grp)for(const nq of[q+1,q-1,q+W,q-W,q+W+1,q+W-1,q-W+1,q-W-1]){if(gs.has(nq)||nq<0||nq>=W*H||m[nq]||d[nq*4+3]<200)continue;const[,s2,v2]=hsv(d[nq*4],d[nq*4+1],d[nq*4+2]);if(v2>.42&&s2<.35)gs.add(nq)} // 둘레 1픽셀까지 채워서 둥글게
+for(const q of gs){od.data[q*4]=255;od.data[q*4+1]=252;od.data[q*4+2]=236;od.data[q*4+3]=135}}}}
+if(!cnt)return null;og.putImageData(od,0,0);
+const e=document.createElement('canvas');e.width=W+GLOW*2;e.height=H+GLOW*2;const eg=e.getContext('2d');eg.shadowColor=`rgba(${Math.min(255,cr/cnt*1.3+40)|0},${Math.min(255,cg/cnt*1.3+40)|0},${Math.min(255,cb/cnt*1.3+40)|0},.9)`;eg.shadowBlur=6;eg.drawImage(o,GLOW,GLOW);eg.shadowBlur=0;eg.globalAlpha=.6;eg.drawImage(o,GLOW,GLOW);return e}
+function bakeCats(){if(!IMG.cats)return;CAT_SPR=CAT_FR.map((fr,k)=>fr.map((r,fi)=>glowed(frameCanvas(k,fi,false))));try{EYE=CAT_FR.map((fr,k)=>fr.map((r,fi)=>eyeGlow(k,fi)))}catch(e){EYE=null} // 파일로 바로 열면 그림 픽셀을 못 읽음 → 눈 빛 없이
 CAT_WORK=IMG.outfit?CAT_FR.map((fr,k)=>fr.map((r,fi)=>glowed(frameCanvas(k,fi,true)))):null} // 알바 중인 고양이 그림
 const CAT_PT=[[14,24,182,153],[201,24,175,152],[382,25,183,152],[571,25,183,152],[14,187,180,146],[199,187,178,146],[381,188,185,145],[572,187,182,146],[14,343,180,150],[199,343,177,151],[381,342,189,152],[576,342,176,155]];
-// 후드를 쓴 주인공 (플레이어): hood.png (tools/HoodTool.cs로 정리) — 0 서 있기 · 1 앉기 · 2 기뻐하기 · 3 당황
-// 가게 주인(채집하는 기존 캐릭터)과 달리 채집은 하지 않고, 가게 옆에 서서 고양이 손님에게 인사하고 물건을 파는 역할
-const HOOD=[[4,4,219,324],[227,53,267,275],[498,12,211,316],[713,23,218,305]];
-// 진열대 앞 왼쪽: 줄 선 고양이 손님들을 마주 보는 자리
-const HOOD_K=.27,HOOD_SPOT=[858,428];
+// 후드친구 (플레이어): hood2.png (후드 스프라이트2.png를 tools/HoodTool2.cs로 정리, 절반 크기 23장)
+//  0~7 정면 2·옆 걷기 4·뒤 2 / 8~15 같은 구성(웃는 얼굴) / 16 기뻐하기 · 17 하트 · 18 만세 · 19 갸웃(?) · 20 볼 감싸기 · 21 입 가리기 · 22 손 흔들기
+// 가게 주인(채집하는 기존 캐릭터)과 달리 섬을 돌아다니지 않고, 가게 앞에서 제작하고 카운터를 보며 고양이 손님을 맞이하는 역할
+const HOOD=[[4,4,103,145],[111,4,103,145],[218,4,93,145],[315,4,91,145],[410,4,95,145],[509,5,92,144],[605,4,89,145],[698,4,89,145],[791,6,102,143],[897,6,98,143],[999,7,93,142],[1096,7,93,142],[1193,7,94,142],[1291,7,91,142],[1386,8,89,141],[1479,7,90,142],[1573,22,106,127],[1683,22,100,127],[1787,21,104,128],[1895,12,105,137],[2004,21,101,128],[2109,24,102,125],[2215,21,110,128]];
+const HF={idle:[0,1],hi:[22],buy:[16,17,18],miss:[19],alone:[20,21]};
+// 진열대 앞 왼쪽: 줄 선 고양이 손님들을 마주 보는 자리 · 크기는 가게 주인·고양이 손님과 비슷하게 (키 약 90)
+const HOOD_K=.62,HOOD_SX=1.1,HOOD_SPOT=[858,428]; // HOOD_SX: 다른 캐릭터와 그림체가 비슷해 보이게 가로로 살짝 넓힘
 const hood={f:0,emoT:0,alone:0};
 const HERO_PT=[64,7,489,632];
 // 주민 정보: 이름 · 겉모습 · 성격 · 희귀도(0 흔함 1 가끔 2 드묾)
@@ -590,8 +651,8 @@ const benchK=l=>Math.max(.3,1-(l-1)*.1);
 const shelfCapAt=l=>6+l*2;
 const shelfCap=()=>shelfCapAt(S.lv.shop);
 // 손님 해금: 귤이부터 순서대로, 플레이 시간이 되고 + (눈송이부터는) 가게 확장 레벨도 되면 찾아옴
-// 귤이 0 · 크림 1분30초 · 먹구름 5분 · 고등어 7분 · 눈송이 13분 · 삼순이 20분 · 호두·딸기 30분(같이) · 블루 40분 · 양말 50분 · 해바라기 60분 · 라떼 70분
-const TIME_UNLOCK=[0,90,5*60,7*60,13*60,20*60,30*60,30*60,40*60,50*60,60*60,70*60];
+// 귤이 0 · 크림 1분30초 · 먹구름 5분 · 고등어 7분 · 눈송이 13분 · 삼순이 20분 · 호두·딸기 25분(같이) · 블루 35분 · 양말 45분 · 해바라기 55분 · 라떼 65분
+const TIME_UNLOCK=[0,90,5*60,7*60,13*60,20*60,25*60,25*60,35*60,45*60,55*60,65*60];
 const shopNeed=k=>k<4?1:k===6?5:k-2; // 눈송이 Lv.2 → 라떼 Lv.9 (호두는 딸기와 같이 오도록 Lv.5)
 const PAIR_ARRIVE=[6,7]; // 호두·딸기는 처음 올 때 같이 찾아옴
 function unlockedCount(){let n=0;while(n<12&&S.playTime>=TIME_UNLOCK[n]&&S.lv.shop>=shopNeed(n))n++;return n}
@@ -660,7 +721,7 @@ function sGull(force){const a=audio();if(!a||!(force||S.gull!==false))return;con
 const BGM_VOL=.5,bgmEl=new Audio('assets/bgm.mp3');bgmEl.loop=true;bgmEl.preload='auto';bgmEl.volume=BGM_VOL;
 bgmEl.addEventListener('ended',()=>{bgmEl.currentTime=0;startBgm()});
 let bgmPreviewing=false;
-function startBgm(){if(AC&&(S.bgm||bgmPreviewing)&&!document.hidden&&bgmEl.paused)bgmEl.play().catch(()=>{})}
+function startBgm(){if(AC&&(S.bgm||bgmPreviewing)&&!document.hidden&&bgmEl.paused&&!rumorOn)bgmEl.play().catch(()=>{})} // 소문 이야기 중엔 배경음악 쉼
 setInterval(startBgm,2000); // 혹시 멈춰 있으면 다시
 // 설정에서 ▶: 배경음악이 꺼져 있어도 5초만 들려줌
 function bgmPreview(){if(!audio()||S.bgm)return;bgmPreviewing=true;bgmEl.volume=BGM_VOL;startBgm();setTimeout(()=>{bgmPreviewing=false;setBus()},5000)}
@@ -679,30 +740,34 @@ let customers=[],floats=[],sparks=[],spawnT=4,drops=[],dropT=12,helpers=[];
 // 화면을 빈틈없이 꽉 채움: 배경을 화면보다 크게(cover) 그리고, 잘린 부분은 손가락/마우스로 끌어서 봄. UI는 위에 겹쳐 올림
 // 확대: 1 = 화면을 꽉 채우는 크기(이보다 작아지면 빈 공간이 보여서 막음), 처음엔 가게 쪽을 확대해서 시작
 // 시작 배율은 시작 화면에서 정함 (처음 이야기: 주인공 확대 / 그 외: 섬 전체)
-const cam={x:900,y:470},ZMIN=1,ZMAX=3;let zoom=1;
+const cam={x:900,y:470},ZMAX=3;let zoom=1;
+// 폰(세로 화면)은 더 축소해서 넓게 볼 수 있게: 배경 바깥은 배경 그림을 거울처럼 이어 붙여서 빈 공간 없이 채움
+const portView=()=>view.H>view.W*1.1;
+const zMin=()=>portView()?.68:1;
+const EDGE=()=>portView()?260:0; // 섬 그림 바깥으로 보여 줄 수 있는 여백
 // 섬 전체가 잘 보이는 배율·위치 (섬: 대략 330~1250 × 100~800)
 const ISLAND={x:790,y:450,w:960,h:760};
-const islandZoom=()=>Math.max(ZMIN,Math.min(ZMAX,Math.min(view.W/ISLAND.w,view.H/ISLAND.h)/view.base));
+const islandZoom=()=>Math.max(zMin(),Math.min(ZMAX,Math.min(view.W/ISLAND.w,view.H/ISLAND.h)/view.base));
 // 카메라를 부드럽게 이동·확대 (시작하기 → 섬 전체로 쭉 빠짐)
 let camTw=null;
 function flyTo(x,y,z,dur,done){camTw={x0:cam.x,y0:cam.y,z0:zoom,x,y,z,t:0,dur,done}}
 function stepCam(dt){if(!camTw)return;const w=camTw;w.t=Math.min(1,w.t+dt/w.dur);const e=w.t<.5?2*w.t*w.t:1-Math.pow(-2*w.t+2,2)/2;
 zoom=w.z0+(w.z-w.z0)*e;view.s=view.base*zoom;cam.x=w.x0+(w.x-w.x0)*e;cam.y=w.y0+(w.y-w.y0)*e;clampCam();if(w.t>=1){camTw=null;if(w.done)w.done()}}
-function clampCam(){const v=view,hw=v.W/2/v.s,hh=v.H/2/v.s;cam.x=Math.max(hw,Math.min(WORLD_W-hw,cam.x));cam.y=Math.max(hh,Math.min(WORLD-hh,cam.y));v.ox=v.W/2-cam.x*v.s;v.oy=v.H/2-cam.y*v.s}
+function clampCam(){const v=view,hw=v.W/2/v.s,hh=v.H/2/v.s,E=EDGE(),cl=(c,h,size)=>{const lo=h-E,hi=size-h+E;return lo>hi?size/2:Math.max(lo,Math.min(hi,c))};cam.x=cl(cam.x,hw,WORLD_W);cam.y=cl(cam.y,hh,WORLD);v.ox=v.W/2-cam.x*v.s;v.oy=v.H/2-cam.y*v.s}
 function resize(){
 const dpr=Math.min(2,devicePixelRatio||1),W=innerWidth,H=innerHeight,gm=$('#game');
 gm.style.cssText=`left:0;top:0;width:${W}px;height:${H}px`;
 const port=H>W*1.1;gm.className=port?'port':Math.min(W,H)<660?'small':'';gm.classList.toggle('storymode',!S.intro);gm.classList.toggle('opening',openingOn);gm.classList.toggle('rumormode',rumorOn);gm.classList.toggle('clean',!!S.uiClean&&(port||Math.min(W,H)<660));
 $('#toast').style.top=(port?190:Math.min(W,H)<660?140:136)+'px'; // 주문 대기열 아래
 cv.width=W*dpr;cv.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);
-const base=Math.max(W/WORLD_W,H/WORLD);view={base,s:base*zoom,ox:0,oy:0,W,H};clampCam();
+const base=Math.max(W/WORLD_W,H/WORLD);view={base,s:base*zoom,ox:0,oy:0,W,H};if(zoom<zMin()){zoom=zMin();view.s=base*zoom}clampCam();
 }
 addEventListener('resize',resize);
 // 끌어서 섬 둘러보기
 // 화면의 (px,py) 지점을 고정한 채로 확대/축소
 // 직접 움직이면 자동 이동은 멈춤 (이어서 할 일은 바로 실행)
-const stopTw=()=>{if(camTw){const d=camTw.done;camTw=null;if(d)d()}};cv.addEventListener('pointerdown',stopTw);cv.addEventListener('wheel',stopTw);
-function setZoom(z,px,py){const wx=(px-view.ox)/view.s,wy=(py-view.oy)/view.s;zoom=Math.max(ZMIN,Math.min(ZMAX,z));view.s=view.base*zoom;cam.x=wx+(view.W/2-px)/view.s;cam.y=wy+(view.H/2-py)/view.s;clampCam()}
+const stopTw=()=>{if(mini)return;if(camTw){const d=camTw.done;camTw=null;if(d)d()}};cv.addEventListener('pointerdown',stopTw);cv.addEventListener('wheel',stopTw);
+function setZoom(z,px,py){const wx=(px-view.ox)/view.s,wy=(py-view.oy)/view.s;zoom=Math.max(zMin(),Math.min(ZMAX,z));view.s=view.base*zoom;cam.x=wx+(view.W/2-px)/view.s;cam.y=wy+(view.H/2-py)/view.s;clampCam()}
 // 한 손가락/마우스 = 끌어서 이동, 두 손가락 = 벌리고 오므려서 확대/축소
 const ptrs=new Map();let pinch=null;
 const mid=()=>{const a=[...ptrs.values()];return{x:(a[0].x+a[1].x)/2,y:(a[0].y+a[1].y)/2,d:Math.hypot(a[0].x-a[1].x,a[0].y-a[1].y)}};
@@ -713,7 +778,8 @@ const mid=()=>{const a=[...ptrs.values()];return{x:(a[0].x+a[1].x)/2,y:(a[0].y+a
 let tap=null,pmode=null,holdT=null;const HOLD_MS=300;
 function startVac(x,y){pmode='vac';vac={x,y};tap=null;if(navigator.vibrate)try{navigator.vibrate(15)}catch(_){}tone(500,900,.08,.05,'sine')}
 cv.addEventListener('contextmenu',e=>e.preventDefault());
-cv.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cv.setPointerCapture(e.pointerId)}catch(_){}clearTimeout(holdT);
+cv.addEventListener('pointerdown',e=>{if(mini){if(mini.i>=0)miniNext();return} // 미니 이야기 중에는 탭 = 다음 대사
+ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});try{cv.setPointerCapture(e.pointerId)}catch(_){}clearTimeout(holdT);
 if(ptrs.size===2){pinch=mid();pmode='pinch';tap=null;vac=null;return}
 tap={x:e.clientX,y:e.clientY};vac=null;pmode='wait';
 if(e.button===2&&S.intro){startVac(e.clientX,e.clientY);return}
@@ -734,6 +800,11 @@ cv.addEventListener('wheel',e=>{e.preventDefault();setZoom(zoom*Math.exp(-e.delt
 function drawSprite(img,r,x,y,h,flip){
 if(!img)return;const k=h/r[3],w=r[2]*k;ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,1);ctx.drawImage(img,r[0],r[1],r[2],r[3],-w/2,-h,w,h);ctx.restore();
 }
+// 옆으로 뜨는 말풍선: (tx,ty)를 가리키는 꼬리가 오른쪽에 붙고, 몸통은 그 왼쪽에
+function bubbleL(tx,ty,content,w=34,h=30){
+ctx.save();ctx.fillStyle='#fffaf0';ctx.strokeStyle='#7a5236';ctx.lineWidth=2.5;const r=8,R=tx-8,L=R-w,T=ty-h/2,B=ty+h/2;
+ctx.beginPath();ctx.moveTo(L+r,T);ctx.arcTo(R,T,R,B,r);ctx.lineTo(R,ty-4);ctx.lineTo(tx,ty);ctx.lineTo(R,ty+4);ctx.arcTo(R,B,L,B,r);ctx.arcTo(L,B,L,T,r);ctx.arcTo(L,T,R,T,r);ctx.closePath();ctx.fill();ctx.stroke();
+content(L+w/2,ty);ctx.restore()}
 function shadow(x,y,w){ctx.fillStyle='rgba(40,60,40,.22)';ctx.beginPath();ctx.ellipse(x,y,w,w*.35,0,0,7);ctx.fill()}
 function bubble(x,y,content,w=34,h=30){
 ctx.save();ctx.fillStyle='#fffaf0';ctx.strokeStyle='#7a5236';ctx.lineWidth=2.5;const r=8;
@@ -746,21 +817,23 @@ function dropIcon(n){if(dropIcCache[n])return dropIcCache[n];const s=icon(n),U=4
 g.filter='contrast(1.05) saturate(1.45)';g.drawImage(s,0,0,c.width,c.height);return dropIcCache[n]=c}
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function drawIcon(n,x,y,size){const s=icon(n);ctx.imageSmoothingEnabled=false;ctx.drawImage(s,x-size/2,y-size/2,size,size*s.height/s.width);ctx.imageSmoothingEnabled=true}
+let nightEyes=[],nightNow=0;
 function draw(){
 if(!(view.s>0))return; // 화면 크기가 0일 때(숨겨진 창 등)는 그리지 않음
+nightEyes=[];nightNow=nightness();
 ctx.fillStyle='#1c90b8';ctx.fillRect(0,0,view.W||0,view.H||0);
 ctx.save();ctx.translate(view.ox,view.oy);ctx.scale(view.s,view.s);
 ctx.imageSmoothingQuality='high';
 // 배경은 한 장으로 고정 (프레임 전환은 어지러움)
-if(IMG.bg1)ctx.drawImage(IMG.bg1,0,0,WORLD_W,WORLD);
+if(IMG.bg1){ctx.drawImage(IMG.bg1,0,0,WORLD_W,WORLD);
+// 폰에서 섬 바깥까지 보일 때: 배경을 위아래·양옆으로 거울처럼 뒤집어 이어 붙임 (바다가 끊기지 않게)
+if(EDGE())for(let iy=-1;iy<=1;iy++)for(let ix=-1;ix<=1;ix++){if(!ix&&!iy)continue;ctx.save();ctx.translate(ix>0?2*WORLD_W:0,iy>0?2*WORLD:0);ctx.scale(ix?-1:1,iy?-1:1);ctx.drawImage(IMG.bg1,0,0,WORLD_W,WORLD);ctx.restore()}}
 drawClouds();
 // (꾸미기·선물은 섬이 어수선해지지 않게 '가게 안 인테리어'로만 취급 → 맵에는 그리지 않음, [가게 정보]에서 확인)
 // 소문 이야기로 생긴 섬의 변화 (나뭇잎 벤치 · 반짝이 상자 · 미니 무대 · 숨은 조개밭)
 for(const[i,n,x,y,s]of MAP_CHANGES)if(rf(i)){const di=n[0]==='@'?IMG[n.slice(1)]:dropIcon(n);if(!di)continue;if(n[0]!=='@')shadow(x,y,s*.42);/* 그림(무대 등)은 그림자 없이 */ctx.imageSmoothingEnabled=false;ctx.drawImage(di,x-s/2,y-s*di.height/di.width,s,s*di.height/di.width);ctx.imageSmoothingEnabled=true}
 // 반짝이는 재료 (눌러서 줍기)
 for(const d of drops){const k=Math.max(1,.7/view.s),b=d.suck?0:Math.sin(T*3+d.x)*3*k;ctx.globalAlpha=Math.min(1,d.age*3);if(!d.suck)shadow(d.x,d.y+2,10*k);const di=dropIcon(d.t),sz=38*k;ctx.imageSmoothingEnabled=false;ctx.drawImage(di,d.x-sz/2,d.y-16*k+b-sz/2,sz,sz*di.height/di.width);ctx.imageSmoothingEnabled=true;ctx.globalAlpha=1}
-// 제작대 말풍선
-if(S.crafting.length){const c=S.crafting[0],p=prod(c),left=Math.max(0,c.end-now());bubble(CRAFT_SPOT[0],CRAFT_SPOT[1]-24,(x,y)=>{drawIcon(p.icon||p.id,x-12,y,22);ctx.fillStyle='#5a3d2b';ctx.font="11px 'Galmuri11',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(Math.ceil(left/1000)+'s',x+1,y+1)},58,28)}
 // 진열대 재고 표시
 const stockN=Object.values(S.stock).reduce((a,b)=>a+b,0);
 // 진열대 말풍선: 완성된 상품 아이콘 × 남은 개수 (화면이 작아도 읽히게 크기 보정)
@@ -769,8 +842,15 @@ bubble(SHELF_SPOT[0],SHELF_SPOT[1],(x,y)=>{items.forEach((p,i)=>{const cx=x-w/2+
 // 캐릭터 (아래에 있는 것을 나중에)
 const ents=[{y:hero.y,d:drawHero},{y:HOOD_SPOT[1],d:drawHood},...customers.map(c=>({y:c.y,d:()=>drawCat(c)})),...helpers.map(h=>({y:h.y,d:()=>drawHelper(h)}))].sort((a,b)=>a.y-b.y);
 for(const e of ents)e.d();
+// 제작대 말풍선: 후드친구 왼쪽 옆에, 꼬리는 오른쪽(후드친구 쪽)으로 → 진열대 재고 말풍선(위쪽)과 겹치지 않음
+// 캐릭터보다 나중에 그려서 가려지지 않게
+if(S.crafting.length){const c=S.crafting[0],p=prod(c),left=Math.max(0,c.end-now());
+bubbleL(HOOD_SPOT[0]-HOOD[0][2]*HOOD_K*HOOD_SX*.5-4,HOOD_SPOT[1]-HOOD[0][3]*HOOD_K*.72,(x,y)=>{drawIcon(p.icon||p.id,x-12,y,22);ctx.fillStyle='#5a3d2b';ctx.font="11px 'Galmuri11',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(Math.ceil(left/1000)+'s',x+1,y+1)},58,28)}
 drawSplashes();
 drawSky();
+// 밤: 고양이 눈이 은은하게 빛남 (하늘 색조로 어두워지지 않게 그 위에 더해서 그림, 천천히 숨쉬듯)
+if(nightEyes.length){ctx.save();ctx.globalCompositeOperation='lighter';ctx.globalAlpha=Math.min(1,nightNow*1.1)*(.6+Math.sin(T*1.6)*.08);
+for(const o of nightEyes){ctx.save();ctx.translate(o.x,o.y);if(o.flip)ctx.scale(-1,1);ctx.drawImage(o.e,-o.w/2,0,o.e.width*o.k,o.e.height*o.k);ctx.restore()}ctx.restore()}
 drawDropFx();
 // 떠오르는 글자
 for(const f of floats){ctx.globalAlpha=Math.min(1,f.l*2);if(f.icon)drawIcon(f.icon,f.x-14,f.y,18);ctx.font="bold 15px 'Galmuri11',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';ctx.lineWidth=4;ctx.strokeStyle='#fff';ctx.strokeText(f.t,f.x-2,f.y);ctx.fillStyle=f.c||'#5a3d2b';ctx.fillText(f.t,f.x-2,f.y)}
@@ -833,7 +913,7 @@ ctx.restore()}
 function drawSky(){
 const n=nightness(),rain=weather.type==='rain';
 const t=dayTint();if(rain)for(let j=0;j<3;j++)t[j]=Math.round(t[j]*.8);
-if(t[0]<253||t[1]<253||t[2]<253){ctx.save();ctx.globalCompositeOperation='multiply';ctx.fillStyle=`rgb(${t})`;ctx.fillRect(-50,-50,WORLD_W+100,WORLD+100);ctx.restore()}
+if(t[0]<253||t[1]<253||t[2]<253){ctx.save();ctx.globalCompositeOperation='multiply';ctx.fillStyle=`rgb(${t})`;const E=EDGE()+50;ctx.fillRect(-E,-E,WORLD_W+E*2,WORLD+E*2);ctx.restore()}
 if(n>.05){ctx.save();ctx.globalCompositeOperation='lighter';for(const[x,y,r]of[[930,330,110],[830,380,70],[1060,330,80],[1240,640,70],[1110,400,60]]){const f=.9+Math.sin(T*3+x)*.1,g=ctx.createRadialGradient(x,y,4,x,y,r);g.addColorStop(0,`rgba(255,190,90,${.42*n*f})`);g.addColorStop(1,'rgba(255,190,90,0)');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill()}ctx.restore()}
 }
 // 비: 가늘고 연한 빗줄기가 제각각 위치에서 위→아래 일직선으로. 화면 기준으로 움직임
@@ -855,13 +935,14 @@ ctx.lineWidth=2;ctx.lineCap='round';[[0,.33,.12],[.33,.66,.3],[.66,1,.5]].forEac
 function drawHelper(h){drawCat(h,CAT_WORK);if(h.state==='gather'){const k=Math.max(1,.8/view.s);bubble(h.x,h.y-78,(x,y)=>drawIcon(SPOTS[h.si].t,x,y,20*k),34*k,30*k)}
 else{const k=Math.max(1,.8/view.s);ctx.save();ctx.font=`${11*k}px 'Galmuri11',sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3*k;ctx.strokeStyle='#fff';ctx.strokeText('알바 중',h.x,h.y-74);ctx.fillStyle='#d2691e';ctx.fillText('알바 중',h.x,h.y-74);ctx.restore()}}
 // 후드 주인공 그리기: 숨쉬듯 살짝 들썩임 + 흰 바깥 빛 (감정을 말로 드러내지 않는 설정 → 대사 없이 동작으로만)
+// 가게 주인과 같은 흰 바깥 빛 · 평소엔 정면으로 숨쉬기(0·1), 기쁠 땐 살짝 통통
 function drawHood(){
-if(hero.state==='hidden'||!IMG.hood)return;const [x,y]=HOOD_SPOT,r=HOOD[hood.f],h=r[3]*HOOD_K,br=hood.f===1?1:1+Math.sin(T*2.2)*.012,hop=hood.f===2?Math.abs(Math.sin(T*9))*4:0;
-shadow(x,y,hood.f===1?20:15);ctx.save();ctx.translate(x,y-hop);ctx.scale(1,br);ctx.shadowColor='rgba(255,255,255,.9)';ctx.shadowBlur=7;drawSprite(IMG.hood,r,0,0,h,true);ctx.shadowBlur=2;drawSprite(IMG.hood,r,0,0,h,true);ctx.restore()} // 좌우 반전: 오른쪽에 줄 선 고양이 손님들을 마주 봄
-// 고양이 손님이 오면 인사 · 팔면 기뻐하고 · 그냥 돌아가면 당황 · 한동안 손님이 없으면 앉아서 기다림 (말풍선 없음)
-function hoodReact(kind){hood.f=kind==='miss'?3:2;hood.emoT=1.4}
-function updateHood(dt){if(hood.emoT>0){hood.emoT-=dt;if(hood.emoT<=0)hood.f=0}
-hood.alone=customers.length?0:hood.alone+dt;if(hood.emoT<=0)hood.f=hood.alone>25?1:0}
+if(hero.state==='hidden'||!IMG.hood)return;const [x,y]=HOOD_SPOT,fi=hood.emoT>0||hood.alone>25?hood.f:HF.idle[Math.floor(T*1.6)%2],r=HOOD[fi],h=r[3]*HOOD_K,br=1+Math.sin(T*2.2)*.012,hop=HF.buy.concat(HF.hi).includes(fi)&&hood.emoT>0?Math.abs(Math.sin(T*9))*3:0;
+shadow(x,y,16);ctx.save();ctx.translate(x,y-hop);ctx.scale(HOOD_SX,br);ctx.shadowColor='rgba(255,255,255,.95)';ctx.shadowBlur=9;drawSprite(IMG.hood,r,0,0,h);ctx.shadowBlur=3;drawSprite(IMG.hood,r,0,0,h);ctx.restore()}
+// 고양이 손님이 오면 손 흔들기 · 팔면 기뻐하기(랜덤) · 그냥 돌아가면 갸웃 · 한동안 손님이 없으면 볼을 감싸고 기다림 (말풍선 없음)
+function hoodReact(kind){hood.f=pick(HF[kind]||HF.hi);hood.emoT=1.4}
+function updateHood(dt){if(hood.emoT>0)hood.emoT-=dt;
+const was=hood.alone;hood.alone=customers.length?0:hood.alone+dt;if(hood.emoT<=0&&hood.alone>25&&(was<=25||!HF.alone.includes(hood.f)||Math.random()<dt/6))hood.f=pick(HF.alone)}
 function drawHero(){
 if(hero.state==='hidden')return; // 오프닝 타이틀 동안은 아무도 없음
 const img=IMG.hero;shadow(hero.x,hero.y,16);
@@ -885,12 +966,13 @@ if(c.moving){const side=c.vx!==0&&Math.abs(c.vx)>=Math.abs(c.vy);if(side){fi=Mat
 const r=fr[fi],bob=(c.moving?Math.abs(Math.sin(c.step*12))*2.5:Math.sin(T*2+c.k)*.8)-(c.nod>0?Math.sin((1-c.nod/.8)*Math.PI)*6:0); // nod: 고개 까딱
 // 고양이마다 정면 키 66 기준으로 같은 배율 (옆·뒷모습은 시트 안에서 작게 그려져 있어서 1.13배)
 const k=66/fr[0][3]*(fi?1.13:1);
-if(spr){const s=spr[c.k][fi],w=s.width*k,h=s.height*k;ctx.save();ctx.translate(c.x,c.y-bob+(GLOW+(s.padB||0))*k);if(flip)ctx.scale(-1,1);ctx.drawImage(s,-w/2,-h,w,h);ctx.restore()}
+if(spr){const s=spr[c.k][fi],w=s.width*k,h=s.height*k,ty=c.y-bob+(GLOW+(s.padB||0))*k;ctx.save();ctx.translate(c.x,ty);if(flip)ctx.scale(-1,1);ctx.drawImage(s,-w/2,-h,w,h);ctx.restore();
+const e=EYE&&EYE[c.k][fi];if(e&&nightNow>.05)nightEyes.push({e,x:c.x,y:ty-h,w,k,flip})} // 밤 눈빛은 하늘 색조 뒤에 따로 그림
 // 기다려 주는 시간 게이지 (초록 → 노랑 → 빨강)
 if(c.state==='wait'&&c.waitMax){const p=Math.max(0,c.wait/c.waitMax),k=Math.max(1,.85/view.s),w=46*k,h=7*k,b=2*k,x=c.x-w/2,y=c.y+7;
 ctx.fillStyle='#7a5236';rrect(x-b,y-b,w+b*2,h+b*2,h/2+b);ctx.fill();ctx.fillStyle='#f3e3c3';rrect(x,y,w,h,h/2);ctx.fill();
 if(p>0&&!(p<.25&&Math.sin(T*12)<0)){ctx.fillStyle=p>.5?'#7fcf5f':p>.25?'#f6c343':'#ef6a4a';rrect(x,y,Math.max(h,w*p),h,h/2);ctx.fill()}}
-if(c.say)talkBubble(c.x,c.y-80,c.say.t);
+if(c.say)talkBubble(c.x,c.y-80,c.say.t,c.say.rel);
 else if(c.bub){const b=c.bub;bubble(c.x,c.y-80,(x,y)=>{if(b==='heart')drawIcon('heart',x,y,20);else if(b==='...'){ctx.fillStyle='#5a3d2b';ctx.font="bold 14px sans-serif";ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('...',x,y)}else drawIcon(b,x,y,20)})}
 }
 
@@ -899,7 +981,8 @@ const now=()=>Date.now();
 let last=performance.now(),acc=0;
 function loop(t){
 let dt=Math.min(.1,(t-last)/1000);last=t;
-if(!document.hidden&&!rumorOn){T+=dt;update(dt);stepCam(dt)} // 소문 이야기를 보는 동안은 게임 전체가 멈춤
+// 소문 이야기·고양이 미니 이야기 동안은 게임이 멈춤 (제작만은 계속 흐름)
+if(!document.hidden){T+=dt;if(!rumorOn&&!mini)update(dt);else{stepCraft();stepMini(dt)}stepCam(dt)}
 draw();requestAnimationFrame(loop);
 }
 
@@ -910,6 +993,13 @@ if(d<2){e.x=tx;e.y=ty;e.moving=false;e.vx=e.vy=0;return true}
 const s=Math.min(d,speed*dt);e.x+=dx/d*s;e.y+=dy/d*s;e.moving=true;e.vx=dx;e.vy=dy;e.step+=dt;
 e.dir=Math.abs(dx)>Math.abs(dy)*.8?(dx<0?'left':'right'):(dy<0?'up':'down');return false;
 }
+// 제작: 끝난 것은 진열대로 (특별 주문 상품은 퀘스트 창에서 전달) — 게임이 잠시 멈춰 있을 때(소문·미니 이야기)도 제작만은 계속 흘러감
+function stepCraft(){if(S.crafting.length&&S.crafting[0].end<=now()){const c=S.crafting.shift();
+if(c.id==='sp'){if(S.cq&&S.cq.k===c.k){S.cq.ready=true;toast(`「${SPECIAL[c.k].n}」 완성! 퀘스트 창에서 ${CATS[c.k].n}에게 전달해 주세요`,SPECIAL[c.k].icon)}floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'특별 상품 완성!',l:1.8,icon:SPECIAL[c.k].icon,c:'#d2691e'});sFanfare()}
+else if(c.forSp&&S.cq&&!S.cq.ready){S.cq.box=S.cq.box||{};S.cq.box[c.id]=(S.cq.box[c.id]||0)+1;S.stats.crafted++;S.stats.made[c.id]=(S.stats.made[c.id]||0)+1;floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'🎁 특별 보관함!',l:1.5,icon:c.id,c:'#d2691e'});sDone();
+if(spAllIn())toast(`🎁 「${SPECIAL[S.cq.k].n}」 재료가 다 모였어요! 특별 제작 창에서 완성해요`,SPECIAL[S.cq.k].icon)}
+else{const cap=shelfCap(),n=stockTotal();if(n<cap){S.stock[c.id]=(S.stock[c.id]||0)+1}S.stats.crafted++;S.stats.made[c.id]=(S.stats.made[c.id]||0)+1;floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'완성!',l:1.4,icon:c.id,c:'#4f8f40'});sDone()}
+if(S.crafting.length)S.crafting[0].end=now()+craftMs(prod(S.crafting[0]));uiDirty=true}}
 function update(dt){
 // 플레이 시간 (켜 둔 동안만) → 새 손님 해금 알림
 S.playTime=(S.playTime||0)+dt;
@@ -934,13 +1024,7 @@ if(spot!==null){hero.state='gather';hero.gi=spot;hero.timer=gatherTime(S.lv.bask
 else if(step[2]==='shop'){hero.state='rest';hero.timer=1.2;hero.emote=HERO_ANIM.happy[1+Math.floor(Math.random()*3)];hero.emoteT=1.2}
 else hero.route=(hero.route+1)%HERO_ROUTE.length;
 }}
-// 제작: 끝난 것은 진열대로 (특별 주문 상품은 퀘스트 창에서 전달)
-if(S.crafting.length&&S.crafting[0].end<=now()){const c=S.crafting.shift();
-if(c.id==='sp'){if(S.cq&&S.cq.k===c.k){S.cq.ready=true;toast(`「${SPECIAL[c.k].n}」 완성! 퀘스트 창에서 ${CATS[c.k].n}에게 전달해 주세요`,SPECIAL[c.k].icon)}floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'특별 상품 완성!',l:1.8,icon:SPECIAL[c.k].icon,c:'#d2691e'});sFanfare()}
-else if(c.forSp&&S.cq&&!S.cq.ready){S.cq.box=S.cq.box||{};S.cq.box[c.id]=(S.cq.box[c.id]||0)+1;S.stats.crafted++;S.stats.made[c.id]=(S.stats.made[c.id]||0)+1;floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'🎁 특별 보관함!',l:1.5,icon:c.id,c:'#d2691e'});sDone();
-if(spAllIn())toast(`🎁 「${SPECIAL[S.cq.k].n}」 재료가 다 모였어요! 특별 제작 창에서 완성해요`,SPECIAL[S.cq.k].icon)}
-else{const cap=shelfCap(),n=stockTotal();if(n<cap){S.stock[c.id]=(S.stock[c.id]||0)+1}S.stats.crafted++;S.stats.made[c.id]=(S.stats.made[c.id]||0)+1;floats.push({x:CRAFT_SPOT[0],y:CRAFT_SPOT[1]-40,t:'완성!',l:1.4,icon:c.id,c:'#4f8f40'});sDone()}
-if(S.crafting.length)S.crafting[0].end=now()+craftMs(prod(S.crafting[0]));uiDirty=true}
+stepCraft();
 // 피크 타임 시작/끝
 const pk=isPeak();if(pk!==peakOn){peakOn=pk;if(pk){S.peakCount=(S.peakCount||0)+1;toast(`🔥 피크 타임! 고양이 손님이 몰려와요 (판매 +${Math.round((peakPay()-1)*100)}%)`,'coin');sPeak();spawnT=Math.min(spawnT,1)}else toast('피크 타임이 끝났어요. 다음 피크까지 약 3분!','clock')}
 // 시간대가 바뀔 때 알림
@@ -989,14 +1073,30 @@ if(rf(1)&&mate!=null&&Math.random()<.4&&customers.length<3&&mate<n&&S.dex[mate]&
 const PAIR4=[0,2];
 function pickSlot(k){const free=[0,1,2].filter(i=>!customers.some(c=>c.slot===i)),o=PAIR4.includes(k)?customers.find(c=>c.k===PAIR4[1-PAIR4.indexOf(k)]&&c.state!=='out'):null;
 if(!o||free.length<2)return free[0];const d=i=>Math.abs(i-o.slot);return free.slice().sort((a,b)=>rf(4)?d(a)-d(b):d(b)-d(a))[0]}
+let custSeq=0; // 온 순서 (주문 대기열은 이 순서대로 왼쪽 → 오른쪽)
 function addCust(k,path,wants,lag){const slot=pickSlot(k);if(slot==null)return;const p0=path[0];
-customers.push({k,x:p0[0]+lag*14,y:p0[1]+lag*10,path:path.slice(1).concat([QUEUE[slot]]),slot,state:'in',step:0,vx:0,vy:0,moving:true,wants,wait:0,bub:null,back:path.slice().reverse(),lag})}
+customers.push({seq:++custSeq,k,x:p0[0]+lag*14,y:p0[1]+lag*10,path:path.slice(1).concat([QUEUE[slot]]),slot,state:'in',step:0,vx:0,vy:0,moving:true,wants,wait:0,bub:null,back:path.slice().reverse(),lag})}
 // 귤이·먹구름이 같이 줄 섰을 때 주고받는 말 (이야기 전: 어색 / 이야기 후: 인사하는 사이)
 const PAIR_PRE=[[[0,'어! 먹구름이다! 안녕안녕~!'],[2,'……흥.'],[0,'…나 또 뭐 잘못했나?']],[[0,'왜 맨날 나만 보면 저쪽으로 가?'],[2,'…원래 여기 서는 거야.']],
 [[0,'오늘 간식 같이 고를래?…'],[2,'…혼자 고를 거야.'],[0,'힝…']],[[0,'먹구름은 나 싫어하나 봐…']],[[0,'먹구름! 오늘 날씨 좋다~!!'],[2,'…목소리 크네. 놀랐잖아.']],
 [[2,'…(귤이가 든 간식을 힐끔)'],[0,'응? 뭐라고 했어?'],[2,'아무것도.']]];
 const PAIR_POST=[[[0,'안녕…'],[2,'…흥. 왔냐.']],[[0,'이거 맛있대. 반 줄까?'],[2,'…반만.']]];
-function pairTalk(){const lines=pick(rf(4)?PAIR_POST:PAIR_PRE);lines.forEach(([k,t],i)=>setTimeout(()=>{const c=customers.find(x=>x.k===k&&(x.state==='wait'||x.state==='leaving'));if(c)c.say={t,l:2.6}},2600+i*2500))}
+// 관계 미니 이야기: 처음 보는 대화는 잠깐 게임을 멈추고 두 고양이를 확대해서 분홍 말풍선으로 보여 줌 (탭하면 넘김, 제작은 계속 흐름)
+// 이미 본 대화는 멈추지 않고 말풍선만 띄움
+function pairTalk(){const pre=!rf(4),pool=pre?PAIR_PRE:PAIR_POST,key=pre?'pre':'post',seen=S.miniSeen=S.miniSeen||{},unseen=pool.map((l,i)=>i).filter(i=>!seen[key+i]);
+if(unseen.length){const i=pick(unseen);setTimeout(()=>{if(canMini()&&startMini(pool[i]))seen[key+i]=1},1800);return}
+const lines=pick(pool);lines.forEach(([k,t],i)=>setTimeout(()=>{const c=customers.find(x=>x.k===k&&(x.state==='wait'||x.state==='leaving'));if(c)c.say={t,l:2.6,rel:true}},2600+i*2500))}
+let mini=null;
+const canMini=()=>S.intro&&!rumorOn&&!mini&&!openingOn&&$('#modal').hidden&&$('#coach').hidden&&!document.hidden;
+function startMini(lines){const cs=[...new Set(lines.map(l=>l[0]))].map(k=>customers.find(c=>c.k===k&&c.state==='wait'));if(cs.some(c=>!c))return false;
+const mx=cs.reduce((a,c)=>a+c.x,0)/cs.length,my=cs.reduce((a,c)=>a+c.y,0)/cs.length-45;
+mini={lines,i:-1,t:0,cs,back:{x:cam.x,y:cam.y,z:zoom}};$('#toast').hidden=true;
+const b=$('#mini');b.innerHTML=`💞 ${cs.map(c=>esc(CATS[c.k].n)).join(' · ')} <small>탭하면 넘어가요</small>`;b.hidden=false;sFind();
+flyTo(mx,my,Math.min(ZMAX,Math.max(zoom*1.35,1.9)),.7,()=>{if(mini&&mini.i<0)miniNext()});return true}
+function miniNext(){if(!mini)return;mini.i++;mini.cs.forEach(c=>{if(c.say&&c.say.rel)c.say=null});
+if(mini.i>=mini.lines.length){endMini();return}const[k,t]=mini.lines[mini.i],c=mini.cs.find(x=>x.k===k);if(c)c.say={t,l:99,rel:true};sMeow(k);mini.t=2.8}
+function stepMini(dt){if(mini&&mini.i>=0){mini.t-=dt;if(mini.t<=0)miniNext()}}
+function endMini(){const m=mini;mini=null;$('#mini').hidden=true;m.cs.forEach(c=>{if(c.say&&c.say.rel)c.say=null});flyTo(m.back.x,m.back.y,m.back.z,.7)}
 const sellable=id=>S.stock[id]||0; // 진열대의 상품은 모두 판매용 (특별 주문용은 특별 보관함에 따로)
 function updateCat(c,dt){
 const sp=70;
@@ -1119,11 +1219,12 @@ const WLINES=[
 {rain:['…비 오는 날엔 따뜻한 차가 필요해.','젖은 바닥은 질색이야.'],sun:['…겨우 개었네. 합격.']}];
 function sayW(c,kind){c.say={t:pick(WLINES[c.k][kind]),l:3}}
 // 대사 말풍선 (화면 크기와 상관없이 글씨가 읽히게)
-function talkBubble(x,y,text){
+// rel: 고양이끼리 관계 대화 → 분홍 말풍선으로 강조
+function talkBubble(x,y,text,rel){
 const fs=Math.max(13,12/view.s),pad=fs*.6;ctx.font=`${fs}px 'Galmuri11',sans-serif`;const tw=ctx.measureText(text).width,w=tw+pad*2,h=fs+pad*1.4;
-ctx.save();ctx.fillStyle='#fffaf0';ctx.strokeStyle='#7a5236';ctx.lineWidth=Math.max(2.5,2/view.s);
+ctx.save();ctx.fillStyle=rel?'#ffeaf1':'#fffaf0';ctx.strokeStyle=rel?'#e0708f':'#7a5236';ctx.lineWidth=Math.max(rel?3:2.5,(rel?2.6:2)/view.s);
 const r=h/2;ctx.beginPath();ctx.moveTo(x-w/2+r,y-h);ctx.arcTo(x+w/2,y-h,x+w/2,y,r);ctx.arcTo(x+w/2,y,x-w/2,y,r);ctx.lineTo(x+5,y);ctx.lineTo(x-2,y+fs*.5);ctx.lineTo(x-5,y);ctx.arcTo(x-w/2,y,x-w/2,y-h,r);ctx.arcTo(x-w/2,y-h,x+w/2,y-h,r);ctx.closePath();ctx.fill();ctx.stroke();
-ctx.fillStyle='#5a3d2b';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y-h/2+1);ctx.restore();
+ctx.fillStyle=rel?'#8a3a52':'#5a3d2b';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,x,y-h/2+1);ctx.restore();
 }
 function burst(x,y){for(let i=0;i<10;i++)sparks.push({x,y,vx:rnd(-60,60),vy:rnd(-110,-40),l:1,c:pick(['#f6c343','#fff1a8','#f08aa6','#fff'])})}
 function gain(t,n,x,y){S.res[t]=(S.res[t]||0)+n;S.stats[t]=(S.stats[t]||0)+n;floats.push({x,y,t:'+'+n,l:1.3,icon:t});goalTick();bumpChip(t);uiDirty=true}
@@ -1223,9 +1324,12 @@ function goalTick(){}
 let uiDirty=true;
 function bumpChip(k){const c=document.querySelector(`.chip[data-k="${k}"]`);if(c){c.classList.remove('bump');void c.offsetWidth;c.classList.add('bump')}}
 function renderRes(){
-$('#res').innerHTML=[['gold','coin',S.gold],['shell','shell',S.res.shell],['seaweed','seaweed',S.res.seaweed],['wood','wood',S.res.wood]].map(([k,ic,v])=>`<div class="chip" data-k="${k}" title="${k==='gold'?'골드':RES[k]}">${k==='gold'?'<i class="fire">🔥</i>':''}${ii(ic,24)}<span>${fmt(v||0)}</span>${k==='gold'?'<em class="ptime"></em>':''}</div>`).join('')+'<button id="uiTog" data-uitog title="화면 정리 (퀘스트·주문 창 숨기기)">👁</button>';
+$('#res').innerHTML=[['gold','coin',S.gold],['shell','shell',S.res.shell],['seaweed','seaweed',S.res.seaweed],['wood','wood',S.res.wood]].map(([k,ic,v])=>`<div class="chip" data-k="${k}" title="${k==='gold'?'골드':RES[k]}">${k==='gold'?'<i class="fire">🔥</i>':''}${ii(ic,24)}<span>${fmt(v||0)}</span>${k==='gold'?'<em class="ptime"></em>':''}</div>`).join('')+`<button id="uiTog" data-uitog title="화면 정리 (퀘스트·주문 창 숨기기/보이기)">${S.uiClean?'▲':'▼'}</button>`;
+document.querySelectorAll('#res .chip span').forEach(fitChip);
 }
-function updateRes(){[['gold',S.gold],['shell',S.res.shell],['seaweed',S.res.seaweed],['wood',S.res.wood]].forEach(([k,v])=>{const c=document.querySelector(`.chip[data-k="${k}"] span`);if(c)c.textContent=fmt(v||0)})}
+// 숫자가 길어지면 글씨를 줄여서 칸 안에 (폰처럼 칸이 좁을 때)
+function fitChip(c){const n=c.textContent.length;c.style.fontSize=n<=4?'':n<=5?'.9em':n<=6?'.8em':'.7em'}
+function updateRes(){[['gold',S.gold],['shell',S.res.shell],['seaweed',S.res.seaweed],['wood',S.res.wood]].forEach(([k,v])=>{const c=document.querySelector(`.chip[data-k="${k}"] span`);if(c){c.textContent=fmt(v||0);fitChip(c)}})}
 function renderGoals(){
 const q=S.quest,cur=Math.min(q.n,Math.max(0,qProg(q))),done=cur>=q.n,tut=q.tut!=null;
 // 고양이 특별 주문이 있으면 맨 위에
@@ -1268,7 +1372,7 @@ if(uiDirty){updateRes();renderGoals();renderCraft();renderUpg();renderSpecial();
 const b=document.querySelector('[data-bar]');if(b&&S.crafting[0]){const p=prod(S.crafting[0]),left=S.crafting[0].end-now();b.style.width=Math.max(0,Math.min(100,100-left/craftMs(p)*100))+'%'}
 // 피크 타임: 코인 칸에 불꽃 + 반짝임 + 남은 시간
 const gc=document.querySelector('.chip[data-k="gold"]');if(gc){const pk=isPeak();gc.classList.toggle('peak',pk);const pt=gc.querySelector('.ptime');if(pt)pt.textContent=pk?`피크 ${Math.ceil(peakLeft())}초`:''}
-renderOrders();
+renderOrders();craftLift();
 // 살 수 있는 업그레이드가 있으면 [업그레이드] 버튼 반짝반짝
 const ub=document.querySelector('#dock [data-act="upgrade"]');if(ub)ub.classList.toggle('canup',S.intro&&UPGRADES.some(canUpg));
 // 아직 안 들인 꾸미기를 살 돈이 모이면 [꾸미기] 버튼도 반짝반짝
@@ -1285,7 +1389,7 @@ if(e.target.closest('[data-spopen]')){sPop();openSpecial();return}
 const spc=e.target.closest('[data-spcraft]');if(spc){craftFor(spc.dataset.spcraft);renderSpecial();return}
 if(e.target.closest('[data-qfold]')){sPop();S.qFold=!S.qFold;renderGoals();save();return}
 if(e.target.closest('[data-ofold]')){sPop();S.oFold=!S.oFold;renderOrders();save();return} // 주문 대기열 접기/펼치기
-if(e.target.closest('[data-uitog]')){sPop();S.uiClean=!S.uiClean;$('#game').classList.toggle('clean',S.uiClean);save();return} // 폰: 퀘스트·주문 창 숨기기
+if(e.target.closest('[data-uitog]')){sPop();S.uiClean=!S.uiClean;$('#game').classList.toggle('clean',S.uiClean);$('#uiTog').textContent=S.uiClean?'▲':'▼';save();return} // 폰: 퀘스트·주문 창 숨기기
 if(e.target.closest('[data-cqgive]')){sPop();giveSp();return}
 const hc=e.target.closest('[data-call]');if(hc){callHelper(+hc.dataset.call);renderHelp();return}
 const u=e.target.closest('[data-upg]');if(u){buyUpg(u.dataset.upg);return}
@@ -1302,7 +1406,8 @@ if(k==='help')openHelp();if(k==='shopinfo')openShopInfo();if(k==='rumor')openRum
 // (파일을 바로 열면 그림을 이미지 주소로 바꿀 수 없어서, 미리 그린 캔버스를 복사해서 씀)
 const faceCache={};function faceCanvas(k){const src=faceCache[k]||(faceCache[k]=portraitCanvas(k,72,false)),c=document.createElement('canvas');c.width=src.width;c.height=src.height;c.getContext('2d').drawImage(src,0,0);c.className='face';return c}
 let ordSig='';
-const orderList=()=>S.intro?customers.filter(c=>c.state==='in'||c.state==='wait').sort((a,b)=>a.slot-b.slot):[];
+// 먼저 온 손님부터 왼쪽에, 새로 오는(아직 걸어오는) 손님은 항상 오른쪽 끝에 붙음
+const orderList=()=>S.intro?customers.filter(c=>c.state==='in'||c.state==='wait').sort((a,b)=>(a.seq||0)-(b.seq||0)):[];
 function fillOrders(el,list,fold){
 if(fold){el.innerHTML=list.length?`<button class="ofold" data-ofold>📋 주문 ${list.length}${list.some(c=>sellable(c.wants)>0)?' ✓':''} <i>▾</i></button>`:'';return}
 el.innerHTML=list.length?`<span class="otag" ${el.id==='orders'?'data-ofold title="접기"':''}>주문${el.id==='orders'?' ▴':''}</span>`+list.map(c=>`<div class="ord ${c.state==='in'?'come':''}" data-slot="${c.slot}"><i data-face="${c.k}"></i>${ii(c.wants,26)}${sellable(c.wants)>0?'<b class="ok">✓</b>':''}<span class="bar"><i></i></span></div>`).join(''):'';
@@ -1314,6 +1419,15 @@ const hb=$('#hud').getBoundingClientRect();if(hb.height)el.style.top=Math.round(
 const sig=(S.oFold?'F':'')+list.map(c=>c.k+c.wants+c.state+(S.stock[c.wants]>0)).join('|');
 if(sig!==ordSig){ordSig=sig;fillOrders(el,list,!!S.oFold)}
 list.forEach(c=>{if(c.state!=='wait')return;const o=el.querySelector(`.ord[data-slot="${c.slot}"]`);if(!o)return;const p=Math.max(0,c.wait/c.waitMax);const i=o.querySelector('.bar i');i.style.width=p*100+'%';i.style.background=p>.5?'#7fcf5f':p>.25?'#f6c343':'#ef6a4a';o.classList.toggle('hurry',p<.25)})}
+// 폰에서 제작 창을 열면: 주문 대기열 복사본을 창 위에 띄우고, 창은 그 아래로 내려서 주문을 보면서 만들 수 있게
+function craftLift(){const m=$('#modal'),dlg=m.querySelector('.dlg'),gm=$('#game'),want=(gm.classList.contains('port')||gm.classList.contains('small'))&&!m.hidden&&!!$('#cards')&&!$('#ordersLift');
+let l=$('#ordersCraft');
+if(!want){if(l)l.remove();if(m.dataset.cl){m.style.paddingTop='';m.style.alignItems='';if(dlg)dlg.style.maxHeight='';delete m.dataset.cl}return}
+const list=orderList();if(!l){l=document.createElement('div');l.id='ordersCraft';document.body.appendChild(l)}
+const sig=list.map(c=>c.k+c.wants+c.state+(S.stock[c.wants]>0)).join('|');if(l._sig!==sig){l._sig=sig;fillOrders(l,list,false)}
+const hb=$('#hud').getBoundingClientRect();l.style.top=Math.round(hb.bottom+6)+'px';
+list.forEach(c=>{if(c.state!=='wait')return;const o=l.querySelector(`.ord[data-slot="${c.slot}"]`);if(!o)return;const p=Math.max(0,c.wait/c.waitMax),i=o.querySelector('.bar i');i.style.width=p*100+'%';i.style.background=p>.5?'#7fcf5f':p>.25?'#f6c343':'#ef6a4a'});
+const top=(list.length?l.getBoundingClientRect().bottom:hb.bottom)+30;m.dataset.cl=1;m.style.alignItems='flex-start';m.style.paddingTop=top+'px';if(dlg)dlg.style.maxHeight=`calc(100vh - ${top+16}px)`}
 // ----- 특별 제작 창: 여기서 만든 상품은 특별 보관함으로 (진열대 X) → 다 모이면 특별 상품 완성 -----
 function openSpecial(){if(!S.cq)return;modal('특별 제작','<div id="spWin"></div>','heart');openWin='special';renderSpecial()}
 function renderSpecial(){const el=$('#spWin');if(!el||$('#modal').hidden)return;if(!S.cq){el.innerHTML='<p class="none">진행 중인 특별 주문이 없어요</p>';return}
@@ -1352,7 +1466,7 @@ el.innerHTML=`<div class="sinfo"><div class="srow"><span>가게</span><b>Lv.${S.
 <h4>고양이 손님 팁</h4><p class="none">도감 뒤쪽 고양이일수록 팁을 많이 줘요 (귤이 ×1.0 → 라떼 ×1.88)<br>제작 시간이 긴 상품일수록 값이 더 붙어요 · 원하던 상품이면 ×1.2</p></div>`}
 const spawnBase=()=>{let g=Math.max(7,18-(S.lv.shop-1)*1.6);if(S.decor.flower)g-=2;if(S.decor.lantern)g-=2.5;g*=Math.pow(.94,giftCount());if(rf(11))g*=.95;if(isPeak())g*=.35;return Math.max(isPeak()?2.5:6,g)};
 // 상품 제작 / 가게 업그레이드: 화면 가운데 창으로 열기 (열려 있는 동안 계속 갱신)
-function openCraft(){modal('상품 제작','<div class="qinfo" id="qinfo"></div><div id="cards" class="cgrid2"></div>','necklace');renderCraft();if(S.coach==='craft'&&S.firstDone){S.coach='ordersIn';$('#coach').hidden=true;stepCoach()}}
+function openCraft(){modal('상품 제작','<div class="qinfo" id="qinfo"></div><div id="cards" class="cgrid2"></div>','necklace');renderCraft();craftLift();if(S.coach==='craft'&&S.firstDone){S.coach='ordersIn';$('#coach').hidden=true;stepCoach()}}
 function openUpg(){modal('가게 업그레이드','<div id="upgList"></div>','shop');renderUpg();if(S.coach==='upgWait'){S.coach='upgBtn';stepCoach()}}
 function renderQueue(){
 const q=$('#qinfo');const b=$('#craftBadge');const n=S.crafting.length;
@@ -1405,7 +1519,7 @@ $('#modal [data-next]').onclick=()=>{sPop();i++;if(i>=lines.length){$('#modal').
 // 알림은 한 번에 하나씩, 사이에 쉬는 틈을 두고 천천히. 처음 귤이 도감 해금이 끝나기 전엔 모아 두기만 함
 let toastT,toastBusy=false;const toastQ=[];
 const quietStart=()=>!S.firstDone; // 조용한 시작 (재료·이벤트도 멈춤)
-const quiet=()=>quietStart()||!$('#coach').hidden||rumorOn; // 소문 이야기를 보는 동안에도 알림은 기다림 // 알림은 안내 화살표가 떠 있는 동안에도 기다림
+const quiet=()=>quietStart()||!$('#coach').hidden||rumorOn||!!mini; // 소문 이야기를 보는 동안에도 알림은 기다림 // 알림은 안내 화살표가 떠 있는 동안에도 기다림
 let coachRestUntil=0;
 // ===== 튜토리얼 안내 화살표 =====
 // 단계 (귤이 도감 해금이 끝난 뒤부터): craft(상품 제작 버튼) → ordersIn(제작 창 위로 주문 대기열을 띄워서 가리킴) → craftBtn(첫 손님이 원하는 상품의 제작하기)
@@ -1417,7 +1531,7 @@ if(!l){l=document.createElement('div');l.id='ordersLift';document.body.appendChi
 // 첫 손님은 제작 안내가 끝날 때까지 기다려 줌
 const coachHold=()=>S.firstDone&&['craft','ordersIn','craftBtn'].includes(S.coach);
 // 지금 줄 맨 앞에서 기다리는 손님이 원하는 상품
-const firstWant=()=>{const c=customers.filter(c=>c.state==='wait'||c.state==='in').sort((a,b)=>a.slot-b.slot)[0];return c?PRODUCTS.find(p=>p.id===c.wants):null};
+const firstWant=()=>{const c=orderList()[0];return c?PRODUCTS.find(p=>p.id===c.wants):null};
 let coachShownAt=0;
 function coachTo(el,text,dir){const c=$('#coach');if(!el){c.hidden=true;return}const r=el.getBoundingClientRect();if(!r.width){c.hidden=true;return}
 c.querySelector('.ctxt').textContent=text;c.classList.toggle('up',dir==='up');if(c.hidden){c.hidden=false;coachShownAt=performance.now()}
@@ -1661,10 +1775,16 @@ function rPortrait(who){const el=$('#rumor');let p=el.querySelector('.rbig');con
 if(who===''||typeof who==='number'){if(p)p.remove();return} // 해설 · 고양이 대사에는 초상화 없음 (가게 주인 · 나만)
 if(!p||p.dataset.who!==key){if(p)p.remove();p=rumorPortrait(who);p.className='rbig';p.dataset.who=key;el.appendChild(p)}
 // PC: 초상화 아래 끝 = 대사창 아래 끝 (대사창 뒤로 서 있음) / 폰: 대사창 위에 서 있음
-const b=el.querySelector('.rbox');if(b){const r=b.getBoundingClientRect();el.style.setProperty('--rpb',(innerWidth>600?innerHeight-r.bottom:innerHeight-r.top-12)+'px')}}
+const b=el.querySelector('.rbox');if(b){const r=b.getBoundingClientRect();el.style.setProperty('--rpb',(innerWidth>600?innerHeight-r.bottom:innerHeight-r.top-12)+'px');
+// 폰: 컷신과 대사창 사이 빈 곳에 딱 맞는 키로 (컷신 밑에 가려지지 않게)
+if(innerWidth<=600){const cb=el.querySelector('.rcut').getBoundingClientRect().bottom+14,gap=r.top-12-cb;p.style.height=Math.round(Math.max(90,Math.min(innerHeight*.28,230,gap)))+'px'}
+// PC: 초상화가 대사창 왼쪽 끝에 살짝 걸쳐 서도록 (그림 폭이 달라도 화면 끝으로 동떨어지지 않게)
+else{p.style.height='';const ph=p.getBoundingClientRect().height,pw=Math.min(ph*p.width/p.height,Math.max(innerWidth/2-178,innerWidth*.36));p.style.left=Math.round(Math.max(4,r.left-pw*.82))+'px'}}}
 addEventListener('resize',()=>{if(RP&&!RP.end){const e=RP.R.L[RP.i];if(e&&typeof e!=='number')rPortrait(e[0])}});
-let rumorPausedAt=0;
-function playRumor(id){const R=RUMORS.find(r=>r.id===id);if(!R)return;$('#modal').hidden=true;if(!rumorOn)rumorPausedAt=now();rumorOn=true;$('#game').classList.add('rumormode');$('#toast').hidden=true;
+// 소문 이야기 소리: 기본 배경음악은 끄고 파도 소리만 (이야기 전용 음악은 나중에 넣을 예정)
+let rumorWave=null;
+function playRumor(id){const R=RUMORS.find(r=>r.id===id);if(!R)return;$('#modal').hidden=true;rumorOn=true;
+bgmEl.pause();clearInterval(rumorWave);if(audio()){sWave(true);rumorWave=setInterval(()=>{if(!document.hidden)sWave(true)},3400)}$('#game').classList.add('rumormode');$('#toast').hidden=true;
 const el=$('#rumor');el.hidden=false;el.classList.remove('out');el.querySelector('.rtitle em').textContent='고양이 섬의 소문';el.querySelector('.rtitle b').textContent=`「${R.t}」`;
 el.querySelector('.rbox').outerHTML='<div class="rbox panel"><div class="rtx"><b class="rnm"></b><p class="rtxt"></p></div><span class="rnext">▼</span></div>';
 el.querySelector('.rdots').innerHTML=R.cuts.map(()=>'<i></i>').join('');
@@ -1684,19 +1804,18 @@ function rEnd(){if(!RP||RP.end)return;const R=RP.R,first=!S.rumor.read[R.id];RP.
 if(first){S.rumor.read[R.id]=1;S.rf[R.id]=1;save();uiDirty=true;sBabam()}else sFind();rSetCut(R.cuts.length-1);rPortrait('');
 $('#rumor .rbox').outerHTML=`<div class="rbox panel"><div class="rrew"><h4>✨ 소문 「${esc(R.t)}」</h4><p>${R.rw.map(esc).join('<br>')}${first?'':'<br><small style="color:#9a7a60">(이미 받은 보상이에요)</small>'}</p><button class="btn or" data-rclose>섬으로 돌아가기</button></div></div>`;checkRumors()}
 function rClose(){const el=$('#rumor'),R=RP.R,first=RP.first;
-if(S.crafting[0])S.crafting[0].end+=now()-rumorPausedAt; // 멈춰 있던 동안 제작 시간도 흐르지 않음
 el.classList.add('out');setTimeout(()=>{el.hidden=true;el.classList.remove('out')},400);
-$('#game').classList.remove('rumormode');rumorOn=false;RP=null;if(first)toast(`📜 ${R.rw[0]}`,R.icon)}
+$('#game').classList.remove('rumormode');rumorOn=false;RP=null;clearInterval(rumorWave);rumorWave=null;startBgm();if(first)toast(`📜 ${R.rw[0]}`,R.icon)}
 
 // ===== 시작 =====
 (async()=>{
-await Promise.all([load('bg1','assets/island.png'),load('cats','assets/cat_frames.png'),load('catpt','assets/cat_portraits.png'),load('hero','assets/hero.png'),load('heropt','assets/hero_portrait.png'),load('hood','assets/hood.png'),load('hoodpt','assets/hood_portrait.png'),load('leaf','assets/leaf_blanket.png'),load('stage0','assets/stage_plain.png'),load('stage1','assets/stage_ribbon.png'),load('outfit','assets/work_outfit.png')]);
+await Promise.all([load('bg1','assets/island.png'),load('cats','assets/cat_frames.png'),load('catpt','assets/cat_portraits.png'),load('hero','assets/hero.png'),load('heropt','assets/hero_portrait.png'),load('hood','assets/hood2.png'),load('hoodpt','assets/hood_portrait.png'),load('leaf','assets/leaf_blanket.png'),load('stage0','assets/stage_plain.png'),load('stage1','assets/stage_ribbon.png'),load('outfit','assets/work_outfit.png')]);
 // 소문 미리보기: 오프닝·튜토리얼 건너뛰고 모든 고양이·소문을 연 상태로 시작 (저장 안 함)
 if(RTEST){S.intro=true;S.firstDone=true;S.firstCust=1;S.coach='done';for(let k=0;k<12;k++)S.dex[k]=1;S.dexNew={};S.unlockSeen=12;RUMORS.forEach(R=>S.rumor.un[R.id]=1);setTimeout(()=>{openRumors();showToast('🔧 소문 미리보기 모드 — 여기서 한 일은 저장되지 않아요','letter')},400)}
 // 로고: 귤이 얼굴
 const lc=$('#logoCat'),lg=lc.getContext('2d');lg.imageSmoothingQuality='high';const r=CAT_PT[0];if(IMG.catpt)lg.drawImage(IMG.catpt,r[0],r[1],r[2],r[2]*.84,0,4,84,84*.84);
 // 캐릭터는 대비↑로 또렷하게 (한 번만 미리 처리). 배경 색감은 그림 파일 그대로 사용
-const tuned=(img,f)=>{if(!img)return img;const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.filter=f;g.drawImage(img,0,0);return c};IMG.cats=tuned(IMG.cats,'contrast(1.2) saturate(1.12)');IMG.hero=tuned(IMG.hero,'contrast(1.18) saturate(1.1)');IMG.hood=tuned(IMG.hood,'contrast(1.12) saturate(1.08)');
+const tuned=(img,f)=>{if(!img)return img;const c=document.createElement('canvas');c.width=img.width;c.height=img.height;const g=c.getContext('2d');g.filter=f;g.drawImage(img,0,0);return c};IMG.cats=tuned(IMG.cats,'contrast(1.2) saturate(1.12)');IMG.hero=tuned(IMG.hero,'contrast(1.18) saturate(1.1)');IMG.hood=tuned(IMG.hood,'contrast(1.12) saturate(1.08)');IMG.outfit=tuned(IMG.outfit,'contrast(1.45) saturate(1.35) brightness(.97)'); // 알바 복장은 연한 크림색이라 대비를 더 강하게
 bakeCats();initClouds();paintIcons();renderAll();resize();
 // 이어서 할 때는 섬 전체가 보이게 시작
 if(S.intro){zoom=islandZoom();view.s=view.base*zoom;cam.x=ISLAND.x;cam.y=ISLAND.y;clampCam()}
