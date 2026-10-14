@@ -355,7 +355,7 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 .rbox{position:relative;width:100%;max-width:600px;min-height:118px;margin-top:10px;display:flex;gap:12px;align-items:flex-start;padding:16px 16px 12px;cursor:pointer;border-width:5px!important;border-radius:20px!important;box-shadow:0 6px 0 #5a3a22,inset 0 0 0 3px #fff7e8!important}
 /* 말하는 이의 큰 초상화: 오프닝처럼 대사창 위(뒤)에 서 있음. 컷신보다 뒤에 있어서 컷신을 가리지 않음 */
 #rumor .rtitle,#rumor .rcut,#rumor .rbox{position:relative;z-index:2}
-#rumor .rbig{position:absolute;z-index:1;left:max(0px,calc(50vw - 600px));bottom:var(--rpb,150px);height:min(44vh,420px);width:auto;max-width:max(calc(50vw - 178px),36vw);object-fit:contain;object-position:left bottom;filter:drop-shadow(0 0 8px rgba(255,255,255,.9)) drop-shadow(0 0 3px #fff);animation:ptIn .45s cubic-bezier(.3,1.3,.6,1);pointer-events:none}
+#rumor .rbig{position:absolute;z-index:1;left:max(0px,calc(50vw - 600px));bottom:var(--rpb,150px);height:min(44vh,420px);width:auto;max-width:max(calc(50vw - 178px),36vw);object-fit:contain;object-position:left bottom;filter:drop-shadow(0 0 4px rgba(255,255,255,.5));animation:ptIn .45s cubic-bezier(.3,1.3,.6,1);pointer-events:none}
 .rtx{flex:1;min-width:0}
 .rnm{display:inline-block;margin-bottom:4px;padding:2px 12px;font-weight:400;font-size:13px;color:#fff7e8;background:linear-gradient(#cf9662,#a8774f);border:3px solid #7a5236;border-radius:9px;text-shadow:0 1px 0 #7a5236}
 .rnm:empty{display:none}
@@ -367,7 +367,7 @@ text-shadow:var(--o) 0 0 #7a5236,calc(var(--o)*-1) 0 0 #7a5236,0 var(--o) 0 #7a5
 .rrew{flex:1;text-align:center}
 .rrew h4{margin:0 0 6px;font-weight:400;font-size:16px;color:var(--orange2)}
 .rrew p{margin:0 0 10px;font-size:13px;line-height:1.7}
-@media (max-width:600px){.rbox{padding:14px 12px 12px}.rtxt{font-size:14px}#rumor .rbig{height:min(26vh,210px);max-width:62vw;left:4px;filter:drop-shadow(0 0 3px rgba(255,255,255,.55))}
+@media (max-width:600px){.rbox{padding:14px 12px 12px}.rtxt{font-size:14px}#rumor .rbig{height:min(26vh,210px);max-width:62vw;left:4px;filter:drop-shadow(0 0 3px rgba(255,255,255,.4))}
 /* 폰: 컷신은 위쪽, 대사창은 아래쪽에 붙여서 그 사이 빈 곳에 초상화가 서도록 (컷신을 가리지 않게) */
 #rumor{justify-content:flex-start;padding-top:max(56px,calc(env(safe-area-inset-top) + 48px))}#rumor .rbox{margin-top:auto}#rumor .rcut{width:min(66vw,34vh,300px)}}
 .sr{display:flex;gap:8px;align-items:center}
@@ -721,14 +721,26 @@ function sGull(force){const a=audio();if(!a||!(force||S.gull!==false))return;con
 const BGM_VOL=.5,bgmEl=new Audio('assets/bgm.mp3');bgmEl.loop=true;bgmEl.preload='auto';bgmEl.volume=BGM_VOL;
 bgmEl.addEventListener('ended',()=>{bgmEl.currentTime=0;startBgm()});
 let bgmPreviewing=false;
-function startBgm(){if(AC&&(S.bgm||bgmPreviewing)&&!document.hidden&&bgmEl.paused&&!rumorOn)bgmEl.play().catch(()=>{})} // 소문 이야기 중엔 배경음악 쉼
+function startBgm(){if(AC&&(S.bgm||bgmPreviewing)&&!document.hidden&&bgmEl.paused&&!rumorOn){route(bgmEl);bgmEl.play().catch(()=>{})}} // 소문 이야기 중엔 배경음악 쉼
+// 음악 음량 조절: 아이폰은 audio.volume을 바꿀 수 없어서, 웹 오디오 음량 장치(GainNode)를 거쳐 재생 → 서서히 커지고 작아지기 가능
+// (파일로 바로 열었을 때는 브라우저가 막아서 소리가 안 날 수 있으니, http/https에서만 이 방식을 씀)
+function route(el){if(el._g)return el._g;if(!AC||!/^https?:$/.test(location.protocol))return null;
+try{const s=AC.createMediaElementSource(el),g=AC.createGain();s.connect(g).connect(BUS.bgm);el._g=g;el.volume=1}catch(e){el._g=null}return el._g}
+// v: 0~1 (원래 크기 기준), sec초 동안
+function setLevel(el,v,sec,done){const g=route(el);clearInterval(el._f);
+if(g){const t=AC.currentTime,L=el._lv;// 지금 음량은 직전에 걸어 둔 변화(시작값·목표값·시간)로 직접 계산 (gain.value는 바로 안 바뀜)
+const cur=L?(L.sec>0?L.a+(L.b-L.a)*Math.min(1,Math.max(0,(t-L.t)/L.sec)):L.b):1;
+g.gain.cancelScheduledValues(t);g.gain.setValueAtTime(cur,t);if(sec>0)g.gain.linearRampToValueAtTime(v,t+sec);else g.gain.setValueAtTime(v,t);
+el._lv={a:sec>0?cur:v,b:v,t,sec};if(done)setTimeout(done,sec*1000+30);return}
+const from=el.volume,to=v*BGM_VOL,steps=Math.max(1,Math.round(sec*20));let n=0;if(!sec){el.volume=to;if(done)done();return}
+el._f=setInterval(()=>{n++;el.volume=Math.max(0,Math.min(1,from+(to-from)*n/steps));if(n>=steps){clearInterval(el._f);if(done)done()}},50)}
 setInterval(startBgm,2000); // 혹시 멈춰 있으면 다시
 // 설정에서 ▶: 배경음악이 꺼져 있어도 5초만 들려줌
-function bgmPreview(){if(!audio()||S.bgm)return;bgmPreviewing=true;bgmEl.volume=BGM_VOL;startBgm();setTimeout(()=>{bgmPreviewing=false;setBus()},5000)}
+function bgmPreview(){if(!audio()||S.bgm)return;bgmPreviewing=true;if(BUS.bgm)BUS.bgm.gain.value=BGM_VOL;setLevel(bgmEl,1,0);startBgm();setTimeout(()=>{bgmPreviewing=false;setBus()},5000)}
 // 바다 소리 예약
 setInterval(()=>{if(AC&&!document.hidden&&Math.random()<.5)sWave()},3500);
 setInterval(()=>{if(AC&&!document.hidden&&Math.random()<.3)sGull()},14000);
-function setBus(){if(!AC)return;bgmEl.volume=BGM_VOL;if(S.bgm)startBgm();else if(!bgmPreviewing)bgmEl.pause();BUS.bgm.gain.value=S.bgm?BGM_VOL:0;BUS.amb.gain.value=.55;BUS.sfx.gain.value=S.sound?1:0}
+function setBus(){if(!AC)return;if(!bgmEl._g)bgmEl.volume=BGM_VOL;if(S.bgm)startBgm();else if(!bgmPreviewing)bgmEl.pause();BUS.bgm.gain.value=S.bgm?BGM_VOL:0;BUS.amb.gain.value=.55;BUS.sfx.gain.value=S.sound?1:0}
 addEventListener('pointerdown',()=>{audio()},{once:false,capture:true});
 
 // ===== 세계 상태 =====
@@ -817,10 +829,10 @@ function dropIcon(n){if(dropIcCache[n])return dropIcCache[n];const s=icon(n),U=4
 g.filter='contrast(1.05) saturate(1.45)';g.drawImage(s,0,0,c.width,c.height);return dropIcCache[n]=c}
 function rrect(x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath()}
 function drawIcon(n,x,y,size){const s=icon(n);ctx.imageSmoothingEnabled=false;ctx.drawImage(s,x-size/2,y-size/2,size,size*s.height/s.width);ctx.imageSmoothingEnabled=true}
-let nightEyes=[],nightNow=0;
+let nightEyes=[],nightNow=0,relBubbles=[];
 function draw(){
 if(!(view.s>0))return; // 화면 크기가 0일 때(숨겨진 창 등)는 그리지 않음
-nightEyes=[];nightNow=nightness();
+nightEyes=[];nightNow=nightness();relBubbles=[];
 ctx.fillStyle='#1c90b8';ctx.fillRect(0,0,view.W||0,view.H||0);
 ctx.save();ctx.translate(view.ox,view.oy);ctx.scale(view.s,view.s);
 ctx.imageSmoothingQuality='high';
@@ -846,6 +858,7 @@ for(const e of ents)e.d();
 // 캐릭터보다 나중에 그려서 가려지지 않게
 if(S.crafting.length){const c=S.crafting[0],p=prod(c),left=Math.max(0,c.end-now());
 bubbleL(HOOD_SPOT[0]-HOOD[0][2]*HOOD_K*HOOD_SX*.5-4,HOOD_SPOT[1]-HOOD[0][3]*HOOD_K*.72,(x,y)=>{drawIcon(p.icon||p.id,x-12,y,22);ctx.fillStyle='#5a3d2b';ctx.font="11px 'Galmuri11',sans-serif";ctx.textAlign='left';ctx.textBaseline='middle';ctx.fillText(Math.ceil(left/1000)+'s',x+1,y+1)},58,28)}
+for(const c of relBubbles)talkBubble(c.x,c.y-80,c.say.t,true); // 관계 대화 말풍선은 다른 말풍선·캐릭터보다 항상 위
 drawSplashes();
 drawSky();
 // 밤: 고양이 눈이 은은하게 빛남 (하늘 색조로 어두워지지 않게 그 위에 더해서 그림, 천천히 숨쉬듯)
@@ -972,7 +985,8 @@ const e=EYE&&EYE[c.k][fi];if(e&&nightNow>.05)nightEyes.push({e,x:c.x,y:ty-h,w,k,
 if(c.state==='wait'&&c.waitMax){const p=Math.max(0,c.wait/c.waitMax),k=Math.max(1,.85/view.s),w=46*k,h=7*k,b=2*k,x=c.x-w/2,y=c.y+7;
 ctx.fillStyle='#7a5236';rrect(x-b,y-b,w+b*2,h+b*2,h/2+b);ctx.fill();ctx.fillStyle='#f3e3c3';rrect(x,y,w,h,h/2);ctx.fill();
 if(p>0&&!(p<.25&&Math.sin(T*12)<0)){ctx.fillStyle=p>.5?'#7fcf5f':p>.25?'#f6c343':'#ef6a4a';rrect(x,y,Math.max(h,w*p),h,h/2);ctx.fill()}}
-if(c.say)talkBubble(c.x,c.y-80,c.say.t,c.say.rel);
+if(c.say&&c.say.rel)relBubbles.push(c); // 분홍(관계) 말풍선은 나중에 맨 위에 그림
+else if(c.say)talkBubble(c.x,c.y-80,c.say.t);
 else if(c.bub){const b=c.bub;bubble(c.x,c.y-80,(x,y)=>{if(b==='heart')drawIcon('heart',x,y,20);else if(b==='...'){ctx.fillStyle='#5a3d2b';ctx.font="bold 14px sans-serif";ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('...',x,y)}else drawIcon(b,x,y,20)})}
 }
 
@@ -1081,9 +1095,24 @@ const PAIR_PRE=[[[0,'어! 먹구름이다! 안녕안녕~!'],[2,'……흥.'],[0,
 [[0,'오늘 간식 같이 고를래?…'],[2,'…혼자 고를 거야.'],[0,'힝…']],[[0,'먹구름은 나 싫어하나 봐…']],[[0,'먹구름! 오늘 날씨 좋다~!!'],[2,'…목소리 크네. 놀랐잖아.']],
 [[2,'…(귤이가 든 간식을 힐끔)'],[0,'응? 뭐라고 했어?'],[2,'아무것도.']]];
 const PAIR_POST=[[[0,'안녕…'],[2,'…흥. 왔냐.']],[[0,'이거 맛있대. 반 줄까?'],[2,'…반만.']]];
+// 관계 대화 짝 (관계성 기획서): 같이 줄을 서면 분홍 말풍선으로 주고받음 · r = 그 둘의 소문 이야기 (보기 전 pre / 본 뒤 post)
+const PAIRS=[{c:[0,2],r:4,k:'',pre:PAIR_PRE,post:PAIR_POST},
+{c:[1,5],r:11,pre:[[[5,'있잖아 크림! 어제 그 얘기 다들 알아~?'],[1,'…아, 하하. 그, 그랬나요.']],[[1,'삼순 씨, 오늘은… 조용히 들어 줄래요?'],[5,'으, 응…! (입을 꾹)']]],post:[[[5,'크림, 이거 말해도 되는 얘기야?'],[1,'후후, 이번 건 괜찮아요.']]]},
+{c:[3,8],r:5,pre:[[[3,'블루! 또 울어? 왜? 왜?'],[8,'흐, 흐엉…']]],post:[[[3,'…옆에 있을까?'],[8,'응… 고마워…']]]},
+{c:[6,7],r:6,pre:[[[7,'호두 선배! 딸기 리본 어때?'],[6,'……'],[7,'…대답 좀 해 주지.']]],post:[[[7,'선배, 무대 고마워☆'],[6,'…흠. 리본, 잘 어울리는군.']]]},
+{c:[4,10],r:12,pre:[[[10,'눈송이~ 그거 또 잃어버려도 괜찮아~'],[4,'…괜찮지 않아요.']]],post:[[[10,'그 상자, 많이 아끼는구나~'],[4,'…네. 헤헤.']]]},
+{c:[5,9],r:13,pre:[[[5,'양말! 내 얘기 들어 봐!'],[9,'Zzz…'],[5,'또 자!']]],post:[[[5,'이건 밤에 얘기해 줄게~'],[9,'…응… 기대할게…']]]},
+{c:[5,11],r:14,pre:[[[5,'라떼! 오늘은 어디 맛집 가?'],[11,'…비밀이야.']]],post:[[[11,'…오늘은 부두 끝.'],[5,'(입을 꾹 다물고 끄덕끄덕)']]]},
+{c:[2,9],r:1,pre:[[[2,'…또 자냐.'],[9,'하암… 네 자리… 맡아 뒀어…']]],post:[[[9,'나뭇잎… 따뜻해…'],[2,'…흥. 감기 걸리지 마.']]]},
+{c:[1,4],r:2,pre:[[[1,'눈송이, 상자는 잘 있어요?'],[4,'(꼬옥) …네.']]],post:[[[4,'크림 언니, 새 조개 넣었어요…!'],[1,'어머, 예쁘네요.']]]},
+{c:[3,6],r:3,pre:[[[3,'형님! 저기 바위 끝까지 가 볼래!'],[6,'…혼자는 안 된다.']]],post:[[[3,'형님, 지름길로 갈까?'],[6,'…같이 가지.']]]},
+{c:[0,7],r:10,pre:[[[0,'딸기! 오늘도 노래해?'],[7,'관객 있으면~☆']]],post:[[[0,'딸기 노래 시작한대~!!'],[7,'첫 번째 관객 왔다☆']]]},
+{c:[10,9],r:15,pre:[[[10,'햇살 좋다~ 양말도 누울래~?'],[9,'…응…']]],post:[[[9,'…반 자리… 남겨 뒀어…'],[10,'역시 양말~ 따뜻하다~']]]},
+{c:[1,8],r:16,pre:[[[8,'크림… 나 오늘 좀…'],[1,'천천히 말해요.']]],post:[[[8,'크림은 오늘 괜찮아?'],[1,'후후, 블루가 물어봐 주니 괜찮아요.']]]},
+{c:[3,11],r:8,pre:[[[3,'라떼! 그 종이 뭐야?'],[11,'…아무것도 아니야.']]],post:[[[3,'다음 맛집 어디야?'],[11,'…조용히 따라와.']]]}];
 // 관계 미니 이야기: 처음 보는 대화는 잠깐 게임을 멈추고 두 고양이를 확대해서 분홍 말풍선으로 보여 줌 (탭하면 넘김, 제작은 계속 흐름)
 // 이미 본 대화는 멈추지 않고 말풍선만 띄움
-function pairTalk(){const pre=!rf(4),pool=pre?PAIR_PRE:PAIR_POST,key=pre?'pre':'post',seen=S.miniSeen=S.miniSeen||{},unseen=pool.map((l,i)=>i).filter(i=>!seen[key+i]);
+function pairTalk(P){P=P||PAIRS[0];const pre=!rf(P.r),pool=pre?P.pre:P.post,key=(P.k!=null?P.k:P.c.join('_')+'_')+(pre?'pre':'post'),seen=S.miniSeen=S.miniSeen||{},unseen=pool.map((l,i)=>i).filter(i=>!seen[key+i]);
 if(unseen.length){const i=pick(unseen);setTimeout(()=>{if(canMini()&&startMini(pool[i]))seen[key+i]=1},1800);return}
 const lines=pick(pool);lines.forEach(([k,t],i)=>setTimeout(()=>{const c=customers.find(x=>x.k===k&&(x.state==='wait'||x.state==='leaving'));if(c)c.say={t,l:2.6,rel:true}},2600+i*2500))}
 let mini=null;
@@ -1109,7 +1138,7 @@ if(c.state==='in'&&!S.dex[c.k]&&!c.spotted&&Math.hypot(c.x-HOOD_SPOT[0],c.y-HOOD
 const tgt=c.path[0];if(moveTo(c,tgt[0],tgt[1],sp,dt)){c.path.shift();if(!c.path.length){if(c.state==='in'){c.state='wait';c.wait=c.waitMax=(S.decor.umbrella?40:30)+(rf(5)?2:0)+(rf(15)&&weather.type==='sun'?3:0);c.bub=c.wants;c.think=rnd(2.2,3);if(weather.type==='rain'&&Math.random()<.5)sayW(c,'rain');else say(c,'hi');sMeow(c.k);discover(c.k);
 if(rf(9)){c.nod=.8;hoodReact('hi')}else setTimeout(()=>hoodReact('hi'),700); // ⑨ 이후: 도착하면 후드친구에게 먼저 고개를 까딱
 // ④ 귤이·먹구름이 같이 줄 서 있으면 (이야기 해금 조건: 5번)
-if(PAIR4.includes(c.k)&&customers.some(o=>o.k===PAIR4[1-PAIR4.indexOf(c.k)]&&o.state==='wait')){if(!rf(4))S.pairCnt=(S.pairCnt||0)+1;pairTalk()}}
+const P=PAIRS.find(p=>p.c.includes(c.k)&&customers.some(o=>o!==c&&o.k===p.c[1-p.c.indexOf(c.k)]&&o.state==='wait'));if(P){if(P.r===4&&!rf(4))S.pairCnt=(S.pairCnt||0)+1;pairTalk(P)}}
 else c.gone=true}}
 return;
 }
@@ -1781,8 +1810,20 @@ if(innerWidth<=600){const cb=el.querySelector('.rcut').getBoundingClientRect().b
 // PC: 초상화가 대사창 왼쪽 끝에 살짝 걸쳐 서도록 (그림 폭이 달라도 화면 끝으로 동떨어지지 않게)
 else{p.style.height='';const ph=p.getBoundingClientRect().height,pw=Math.min(ph*p.width/p.height,Math.max(innerWidth/2-178,innerWidth*.36));p.style.left=Math.round(Math.max(4,r.left-pw*.82))+'px'}}}
 addEventListener('resize',()=>{if(RP&&!RP.end){const e=RP.R.L[RP.i];if(e&&typeof e!=='number')rPortrait(e[0])}});
-// 소문 이야기 소리: 기본 배경음악은 끄고 파도 소리만 (이야기 전용 음악은 나중에 넣을 예정)
+// 소문 이야기 소리: 기본 배경음악은 쉬고, 이야기 분위기에 맞는 곡 + 파도 소리
 let rumorWave=null;
+// 이야기 분위기별 음악 (파도 소리와 함께): ① 포근 = 메인 배경음악 · ② 잔잔 · ③ 엉뚱 · ④ 신비
+const RMUSIC={warm:'assets/bgm.mp3',calm:'assets/rumor_calm.mp3',playful:'assets/rumor_playful.mp3',mystery:'assets/rumor_mystery.mp3'};
+const RMOOD_OF={1:'playful',2:'playful',3:'playful',10:'playful',15:'playful',4:'calm',5:'calm',6:'calm',11:'calm',12:'calm',13:'calm',16:'calm',7:'playful',8:'playful',14:'playful',9:'playful'};
+const RMOOD_CUT={9:{2:'mystery'}}; // 「후드친구의 소문」 마지막 컷은 신비로운 곡으로
+const storyEls={};let storyKey=null;
+// 섬으로 돌아갈 때: 이야기 곡이 잦아든 뒤 배경음악을 무음에서 천천히(약 3초) 키움
+function bgmFadeIn(){setLevel(bgmEl,0,0);setTimeout(()=>{if(rumorOn)return;startBgm();setLevel(bgmEl,1,3)},800)}
+// 곡 바꾸기: 지금 곡은 서서히 줄이고 새 곡은 서서히 키움 (배경음악을 끈 설정이면 음악 없이 파도 소리만)
+function storyMusic(key){if(storyKey===key)return;const old=storyKey&&storyEls[storyKey];storyKey=key;
+if(old)setLevel(old,0,1,()=>{if(storyEls[storyKey]!==old)old.pause()});
+if(!key||!S.bgm||!AC)return;const el=storyEls[key]||(storyEls[key]=Object.assign(new Audio(RMUSIC[key]),{loop:true,preload:'auto'}));
+if(el.paused){el.currentTime=0;setLevel(el,0,0)}el.play().catch(()=>{});setLevel(el,1,1)}
 function playRumor(id){const R=RUMORS.find(r=>r.id===id);if(!R)return;$('#modal').hidden=true;rumorOn=true;
 bgmEl.pause();clearInterval(rumorWave);if(audio()){sWave(true);rumorWave=setInterval(()=>{if(!document.hidden)sWave(true)},3400)}$('#game').classList.add('rumormode');$('#toast').hidden=true;
 const el=$('#rumor');el.hidden=false;el.classList.remove('out');el.querySelector('.rtitle em').textContent='고양이 섬의 소문';el.querySelector('.rtitle b').textContent=`「${R.t}」`;
@@ -1792,7 +1833,7 @@ RP={R,i:0,ci:-1,end:false};loadRumorArt(R);rShow();
 el.onclick=e=>{if(e.target.closest('.rskip')){sPop();rEnd();return}if(e.target.closest('[data-rclose]')){sPop();rClose();return}if(RP.end)return;
 const p=el.querySelector('.rtxt'),cur=R.L[RP.i];if(p._t&&cur&&p.textContent.length<cur[1].length){clearInterval(p._t);p.textContent=cur[1];return} // 글자가 나오는 중이면 한 번에
 audio();sPop();RP.i++;rShow()}}
-function rSetCut(n){const R=RP.R;if(RP.ci===n)return;RP.ci=n;drawCut(R,n);const c=$('#rumor .rcut');c.classList.remove('flip');void c.offsetWidth;c.classList.add('flip');
+function rSetCut(n){const R=RP.R;if(RP.ci===n)return;RP.ci=n;drawCut(R,n);storyMusic((RMOOD_CUT[R.id]&&RMOOD_CUT[R.id][n])||RMOOD_OF[R.id]||'warm');const c=$('#rumor .rcut');c.classList.remove('flip');void c.offsetWidth;c.classList.add('flip');
 $('#rumor .rdots').querySelectorAll('i').forEach((d,i)=>d.classList.toggle('on',i===n))}
 function rShow(){const R=RP.R;let e=R.L[RP.i];while(typeof e==='number'){rSetCut(e);RP.i++;e=R.L[RP.i]}if(RP.ci<0)rSetCut(0);if(!e){rEnd();return}
 const[who,t]=e,box=$('#rumor .rbox');box.classList.toggle('nar',who==='');box.classList.toggle('act',who==='h');
@@ -1805,7 +1846,7 @@ if(first){S.rumor.read[R.id]=1;S.rf[R.id]=1;save();uiDirty=true;sBabam()}else sF
 $('#rumor .rbox').outerHTML=`<div class="rbox panel"><div class="rrew"><h4>✨ 소문 「${esc(R.t)}」</h4><p>${R.rw.map(esc).join('<br>')}${first?'':'<br><small style="color:#9a7a60">(이미 받은 보상이에요)</small>'}</p><button class="btn or" data-rclose>섬으로 돌아가기</button></div></div>`;checkRumors()}
 function rClose(){const el=$('#rumor'),R=RP.R,first=RP.first;
 el.classList.add('out');setTimeout(()=>{el.hidden=true;el.classList.remove('out')},400);
-$('#game').classList.remove('rumormode');rumorOn=false;RP=null;clearInterval(rumorWave);rumorWave=null;startBgm();if(first)toast(`📜 ${R.rw[0]}`,R.icon)}
+$('#game').classList.remove('rumormode');rumorOn=false;RP=null;clearInterval(rumorWave);rumorWave=null;storyMusic(null);bgmFadeIn();if(first)toast(`📜 ${R.rw[0]}`,R.icon)}
 
 // ===== 시작 =====
 (async()=>{
