@@ -422,10 +422,18 @@ const CAT_FR=[
 [[4,1608,143,164],[151,1608,96,155],[259,1608,98,138],[364,1608,112,153]],
 [[4,1776,130,164],[151,1776,104,151],[259,1776,101,141],[364,1776,109,155]]];
 // 프레임마다 옅은 바깥 빛(아웃글로우)을 미리 입혀 둠 → 배경 위에서도 고양이가 또렷하게
-const GLOW=12;let CAT_SPR=null;
-function bakeCats(){if(!IMG.cats)return;CAT_SPR=CAT_FR.map(fr=>fr.map(r=>{const c=document.createElement('canvas');c.width=r[2]+GLOW*2;c.height=r[3]+GLOW*2;const g=c.getContext('2d');
-g.shadowColor='rgba(255,248,228,.95)';g.shadowBlur=GLOW;g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],GLOW,GLOW,r[2],r[3]);g.shadowBlur=GLOW/3;g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],GLOW,GLOW,r[2],r[3]);
-g.shadowColor='transparent';g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],GLOW,GLOW,r[2],r[3]);return c}))}
+const GLOW=12;let CAT_SPR=null,CAT_WORK=null;
+// 알바 복장 (assets/work_outfit.png = 알바 복장.png): 귤이 칸(cat_frames 1줄) 위치에 맞춰 그린 모자·앞치마 [x,y,w,h,프레임]
+// → 고양이마다 프레임 크기 비율대로 옮겨서 덧입힘
+// 6번째 값: 아래로 내리는 정도 · 7번째 값: 크기 배율 (정면 앞치마는 얼굴과 다리가 다 보이게 조금 작게, 살짝 아래로)
+const OUTFIT=[[39,5,56,31,0],[200,4,43,42,1],[305,4,43,42,2],[390,2,58,34,3],[37,102,64,52,0,4,.84],[166,90,79,51,1],[272,92,79,51,2],[386,90,63,52,3]];
+const OUT_PAD=10; // 내린 앞치마 끝이 잘리지 않게 아래쪽 여백
+function frameCanvas(k,fi,work){const r=CAT_FR[k][fi],pad=work?OUT_PAD:0,c=document.createElement('canvas');c.width=r[2];c.height=r[3]+pad;c.padB=pad;const g=c.getContext('2d');g.drawImage(IMG.cats,r[0],r[1],r[2],r[3],0,0,r[2],r[3]);
+if(work&&IMG.outfit){const r0=CAT_FR[0][fi],sx=r[2]/r0[2],sy=r[3]/r0[3],s=(sx+sy)/2;for(const p of OUTFIT)if(p[4]===fi){const z=s*(p[6]||1);g.drawImage(IMG.outfit,p[0],p[1],p[2],p[3],(p[0]-r0[0]+p[2]/2)*sx-p[2]*z/2,(p[1]-r0[1]+(p[5]||0))*sy,p[2]*z,p[3]*z)}}return c}
+function glowed(src){const c=document.createElement('canvas');c.padB=src.padB||0;c.width=src.width+GLOW*2;c.height=src.height+GLOW*2;const g=c.getContext('2d');
+g.shadowColor='rgba(255,248,228,.95)';g.shadowBlur=GLOW;g.drawImage(src,GLOW,GLOW);g.shadowBlur=GLOW/3;g.drawImage(src,GLOW,GLOW);g.shadowColor='transparent';g.drawImage(src,GLOW,GLOW);return c}
+function bakeCats(){if(!IMG.cats)return;CAT_SPR=CAT_FR.map((fr,k)=>fr.map((r,fi)=>glowed(frameCanvas(k,fi,false))));
+CAT_WORK=IMG.outfit?CAT_FR.map((fr,k)=>fr.map((r,fi)=>glowed(frameCanvas(k,fi,true)))):null} // 알바 중인 고양이 그림
 const CAT_PT=[[14,24,182,153],[201,24,175,152],[382,25,183,152],[571,25,183,152],[14,187,180,146],[199,187,178,146],[381,188,185,145],[572,187,182,146],[14,343,180,150],[199,343,177,151],[381,342,189,152],[576,342,176,155]];
 // 후드를 쓴 주인공 (플레이어): hood.png (tools/HoodTool.cs로 정리) — 0 서 있기 · 1 앉기 · 2 기뻐하기 · 3 당황
 // 가게 주인(채집하는 기존 캐릭터)과 달리 채집은 하지 않고, 가게 옆에 서서 고양이 손님에게 인사하고 물건을 파는 역할
@@ -844,7 +852,7 @@ function drawRain(){if(weather.type!=='rain'||!view.W)return;const W=view.W,H=vi
 // 빗줄기: 굵기 2px, 위쪽은 거의 투명 → 아래로 갈수록 살짝 진해지는 그라데이션 (3단으로 나눠 그림)
 ctx.lineWidth=2;ctx.lineCap='round';[[0,.33,.12],[.33,.66,.3],[.66,1,.5]].forEach(([a,b,al])=>{ctx.strokeStyle=`rgba(232,243,255,${al})`;ctx.beginPath();for(const d of rainDrops){ctx.moveTo(d.x,d.y+d.l*a);ctx.lineTo(d.x,d.y+d.l*b)}ctx.stroke()});ctx.restore()}
 // 알바 고양이: 고양이 그림 + 머리 위에 줍는 재료 / 바구니 표시
-function drawHelper(h){drawCat(h);if(h.state==='gather'){const k=Math.max(1,.8/view.s);bubble(h.x,h.y-78,(x,y)=>drawIcon(SPOTS[h.si].t,x,y,20*k),34*k,30*k)}
+function drawHelper(h){drawCat(h,CAT_WORK);if(h.state==='gather'){const k=Math.max(1,.8/view.s);bubble(h.x,h.y-78,(x,y)=>drawIcon(SPOTS[h.si].t,x,y,20*k),34*k,30*k)}
 else{const k=Math.max(1,.8/view.s);ctx.save();ctx.font=`${11*k}px 'Galmuri11',sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.lineWidth=3*k;ctx.strokeStyle='#fff';ctx.strokeText('알바 중',h.x,h.y-74);ctx.fillStyle='#d2691e';ctx.fillText('알바 중',h.x,h.y-74);ctx.restore()}}
 // 후드 주인공 그리기: 숨쉬듯 살짝 들썩임 + 흰 바깥 빛 (감정을 말로 드러내지 않는 설정 → 대사 없이 동작으로만)
 function drawHood(){
@@ -870,14 +878,14 @@ if(hero.state==='gather'){const p=1-hero.timer/gatherTime(S.lv.basket),by=hero.y
 // 이 구역에서 나오는 재료 표시
 const k=Math.max(1,.8/view.s);bubble(hero.x,by-6,(x,y)=>drawIcon(SPOTS[hero.gi].t,x,y,20*k),34*k,30*k)}
 }
-function drawCat(c){
+function drawCat(c,spr){spr=spr||CAT_SPR;
 const fr=CAT_FR[c.k];shadow(c.x,c.y,13);
 let fi=0,flip=false;
 if(c.moving){const side=c.vx!==0&&Math.abs(c.vx)>=Math.abs(c.vy);if(side){fi=Math.floor(c.step*6)%2?1:2;flip=c.vx>0}else fi=c.vy<0?3:0}
 const r=fr[fi],bob=(c.moving?Math.abs(Math.sin(c.step*12))*2.5:Math.sin(T*2+c.k)*.8)-(c.nod>0?Math.sin((1-c.nod/.8)*Math.PI)*6:0); // nod: 고개 까딱
 // 고양이마다 정면 키 66 기준으로 같은 배율 (옆·뒷모습은 시트 안에서 작게 그려져 있어서 1.13배)
 const k=66/fr[0][3]*(fi?1.13:1);
-if(CAT_SPR){const s=CAT_SPR[c.k][fi],w=s.width*k,h=s.height*k;ctx.save();ctx.translate(c.x,c.y-bob+GLOW*k);if(flip)ctx.scale(-1,1);ctx.drawImage(s,-w/2,-h,w,h);ctx.restore()}
+if(spr){const s=spr[c.k][fi],w=s.width*k,h=s.height*k;ctx.save();ctx.translate(c.x,c.y-bob+(GLOW+(s.padB||0))*k);if(flip)ctx.scale(-1,1);ctx.drawImage(s,-w/2,-h,w,h);ctx.restore()}
 // 기다려 주는 시간 게이지 (초록 → 노랑 → 빨강)
 if(c.state==='wait'&&c.waitMax){const p=Math.max(0,c.wait/c.waitMax),k=Math.max(1,.85/view.s),w=46*k,h=7*k,b=2*k,x=c.x-w/2,y=c.y+7;
 ctx.fillStyle='#7a5236';rrect(x-b,y-b,w+b*2,h+b*2,h/2+b);ctx.fill();ctx.fillStyle='#f3e3c3';rrect(x,y,w,h,h/2);ctx.fill();
@@ -1682,7 +1690,7 @@ $('#game').classList.remove('rumormode');rumorOn=false;RP=null;if(first)toast(`�
 
 // ===== 시작 =====
 (async()=>{
-await Promise.all([load('bg1','assets/island.png'),load('cats','assets/cat_frames.png'),load('catpt','assets/cat_portraits.png'),load('hero','assets/hero.png'),load('heropt','assets/hero_portrait.png'),load('hood','assets/hood.png'),load('hoodpt','assets/hood_portrait.png'),load('leaf','assets/leaf_blanket.png'),load('stage0','assets/stage_plain.png'),load('stage1','assets/stage_ribbon.png')]);
+await Promise.all([load('bg1','assets/island.png'),load('cats','assets/cat_frames.png'),load('catpt','assets/cat_portraits.png'),load('hero','assets/hero.png'),load('heropt','assets/hero_portrait.png'),load('hood','assets/hood.png'),load('hoodpt','assets/hood_portrait.png'),load('leaf','assets/leaf_blanket.png'),load('stage0','assets/stage_plain.png'),load('stage1','assets/stage_ribbon.png'),load('outfit','assets/work_outfit.png')]);
 // 소문 미리보기: 오프닝·튜토리얼 건너뛰고 모든 고양이·소문을 연 상태로 시작 (저장 안 함)
 if(RTEST){S.intro=true;S.firstDone=true;S.firstCust=1;S.coach='done';for(let k=0;k<12;k++)S.dex[k]=1;S.dexNew={};S.unlockSeen=12;RUMORS.forEach(R=>S.rumor.un[R.id]=1);setTimeout(()=>{openRumors();showToast('🔧 소문 미리보기 모드 — 여기서 한 일은 저장되지 않아요','letter')},400)}
 // 로고: 귤이 얼굴
